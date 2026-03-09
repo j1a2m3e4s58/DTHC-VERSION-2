@@ -1,0 +1,35 @@
+{
+  "name": "SuperFoods Kitchen & Bakery",
+  "short_name": "SuperFoods",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F9F5EC",
+  "theme_color": "#166534",
+  "description": "Order fresh meals, snacks, juices, bakery items, and special packs from SuperFoods Kitchen & Bakery.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "880368061643",
+    "project_id": "superfoods-kitchen",
+    "storage_bucket": "superfoods-kitchen.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880368061643:android:b522ba768ab02f93209f4e",
+        "android_client_info": {
+          "package_name": "com.example.superfoods_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHHsMsir8qTG7vIq4VDr_cJc6AmnqqUOs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
