@@ -4,20 +4,17 @@ FROM debian:bookworm-slim AS build
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
 ENV PATH="${FLUTTER_HOME}/bin:${FLUTTER_HOME}/bin/cache/dart-sdk/bin:${PATH}"
+ENV TAR_OPTIONS=--no-same-owner
 
 RUN apt-get update && apt-get install -y \
     curl git unzip xz-utils zip libglu1-mesa ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone only the stable branch directly
 RUN git clone https://github.com/flutter/flutter.git --depth 1 -b stable ${FLUTTER_HOME}
 
 WORKDIR /app
-
-# Copy project
 COPY . .
 
-# Enable web + fetch only what web needs
 RUN flutter config --enable-web
 RUN flutter precache --web
 RUN flutter pub get
