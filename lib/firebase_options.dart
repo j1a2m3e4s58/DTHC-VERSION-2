@@ -52,22 +52,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-  apiKey: 'AIzaSyB_u-9l5g1LQhOHMwdyjIBNHKQZwmPf1F8',
-  appId: '1:1075043554354:web:d56e36462e308bf070582b',
-  messagingSenderId: '1075043554354',
-  projectId: 'drip-too-hard-collection',
-  authDomain: 'drip-too-hard-collection.firebaseapp.com',
-  storageBucket: 'drip-too-hard-collection.firebasestorage.app',
-  databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
-);
+    apiKey: 'AIzaSyB_u-9l5g1LQhOHMwdyjIBNHKQZwmPf1F8',
+    appId: '1:1075043554354:web:d56e36462e308bf070582b',
+    messagingSenderId: '1075043554354',
+    projectId: 'drip-too-hard-collection',
+    authDomain: 'drip-too-hard-collection.firebaseapp.com',
+    databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
+    storageBucket: 'drip-too-hard-collection.firebasestorage.app',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
-  apiKey: 'AIzaSyAzE6Mv46Iwu9Yjj9sB2Srexe2_DKuGDYg',
-  appId: '1:1075043554354:android:b136215de53b92d970582b',
-  messagingSenderId: '1075043554354',
-  projectId: 'drip-too-hard-collection',
-  storageBucket: 'drip-too-hard-collection.firebasestorage.app',
-  databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
-);
+    apiKey: 'AIzaSyAzE6Mv46Iwu9Yjj9sB2Srexe2_DKuGDYg',
+    appId: '1:1075043554354:android:b136215de53b92d970582b',
+    messagingSenderId: '1075043554354',
+    projectId: 'drip-too-hard-collection',
+    databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
+    storageBucket: 'drip-too-hard-collection.firebasestorage.app',
+  );
 
 }

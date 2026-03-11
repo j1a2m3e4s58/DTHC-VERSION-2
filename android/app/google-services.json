@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "1075043554354",
+    "firebase_url": "https://drip-too-hard-collection-default-rtdb.firebaseio.com",
     "project_id": "drip-too-hard-collection",
     "storage_bucket": "drip-too-hard-collection.firebasestorage.app"
   },
