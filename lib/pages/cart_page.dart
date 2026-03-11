@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'lookbook_page.dart';
+import 'payment_delivery_page.dart';
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
 import '../models/cart_item.dart';
@@ -19,7 +20,7 @@ class CartPage extends StatelessWidget {
     final cart = context.watch<CartController>();
 
     return Scaffold(
-      backgroundColor: AppColors.softCream,
+      backgroundColor: AppColors.primaryBlack,
       body: Column(
         children: [
           CustomNavbar(
@@ -46,19 +47,24 @@ class CartPage extends StatelessWidget {
             onContactTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Contact section coming next.'),
+                  content: Text('Contact page will be connected next.'),
                 ),
               );
             },
-            onTrackOrderTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Your order tracking feature will be available after the store confirms your order.',
-                  ),
-                ),
-              );
-            },
+            onLookbookTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const LookbookPage()),
+  );
+},
+onDeliveryTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const PaymentDeliveryPage(),
+    ),
+  );
+},
             onOrderNowTap: () {
               Navigator.pushReplacement(
                 context,
@@ -106,18 +112,18 @@ class CartPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isMobile ? 28 : 40,
             fontWeight: FontWeight.w800,
-            color: AppColors.black,
+            color: AppColors.white,
           ),
         ),
         const SizedBox(height: 10),
         Text(
           cartCount == 0
-              ? 'Your selected food items will appear here.'
+              ? 'Your selected fashion pieces will appear here.'
               : 'You have $cartCount item${cartCount > 1 ? 's' : ''} in your cart.',
           style: TextStyle(
             fontSize: isMobile ? 14 : 16,
             height: 1.6,
-            color: AppColors.greyText,
+            color: const Color(0xFFBDBDBD),
           ),
         ),
       ],
@@ -129,12 +135,12 @@ class CartPage extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 18 : 24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),
@@ -145,7 +151,7 @@ class CartPage extends StatelessWidget {
           Icon(
             Icons.shopping_cart_outlined,
             size: isMobile ? 54 : 72,
-            color: AppColors.primaryGreen,
+            color: AppColors.gold,
           ),
           const SizedBox(height: 16),
           Text(
@@ -153,24 +159,24 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isMobile ? 18 : 22,
               fontWeight: FontWeight.w700,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Go back to the menu and add meals, snacks, drinks, bakery items, or special packs.',
+            'Go back to the shop and add tees, sneakers, caps, chains, belts, or socks.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isMobile ? 13 : 15,
               height: 1.6,
-              color: AppColors.greyText,
+              color: const Color(0xFFBDBDBD),
             ),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              foregroundColor: AppColors.white,
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.primaryBlack,
               padding: const EdgeInsets.symmetric(
                 horizontal: 22,
                 vertical: 14,
@@ -185,7 +191,7 @@ class CartPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const MenuPage()),
               );
             },
-            child: const Text('Back to Menu'),
+            child: const Text('Back to Shop'),
           ),
         ],
       ),
@@ -232,12 +238,12 @@ class CartPage extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 16 : 22),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),
@@ -266,10 +272,10 @@ class CartPage extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(isMobile ? 14 : 16),
       decoration: BoxDecoration(
-        color: AppColors.softCream,
+        color: AppColors.primaryBlack,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.border,
+          color: AppColors.charcoal,
         ),
       ),
       child: isMobile
@@ -301,7 +307,7 @@ class CartPage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-                ClipRRect(
+        ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: Container(
             height: isMobile ? 72 : 84,
@@ -310,22 +316,22 @@ class CartPage extends StatelessWidget {
               gradient: AppColors.heroGradient,
               borderRadius: BorderRadius.circular(18),
             ),
-            child: item.food.imageUrl.trim().isNotEmpty
+            child: item.product.imageUrl.trim().isNotEmpty
                 ? Image.network(
-                    item.food.imageUrl,
+                    item.product.imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
-                        Icons.fastfood_rounded,
+                        Icons.shopping_bag_outlined,
                         size: isMobile ? 30 : 34,
-                        color: AppColors.primaryGreen,
+                        color: AppColors.gold,
                       );
                     },
                   )
                 : Icon(
-                    Icons.fastfood_rounded,
+                    Icons.shopping_bag_outlined,
                     size: isMobile ? 30 : 34,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.gold,
                   ),
           ),
         ),
@@ -335,33 +341,33 @@ class CartPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item.food.name,
+                item.product.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: isMobile ? 15 : 17,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.black,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                item.food.description,
+                item.product.description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: isMobile ? 12 : 13,
                   height: 1.5,
-                  color: AppColors.greyText,
+                  color: const Color(0xFFBDBDBD),
                 ),
               ),
               const SizedBox(height: 10),
               Text(
-                'GHS ${item.food.price.toStringAsFixed(2)} each',
+                'GHS ${item.product.price.toStringAsFixed(2)} each',
                 style: TextStyle(
                   fontSize: isMobile ? 13 : 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.deepOrange,
+                  color: AppColors.gold,
                 ),
               ),
             ],
@@ -401,18 +407,18 @@ class CartPage extends StatelessWidget {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             onPressed: () {
-              cart.decreaseQuantity(item.food.id);
+              cart.decreaseQuantity(item.product.id);
             },
-            icon: const Icon(Icons.remove),
+            icon: const Icon(Icons.remove, color: AppColors.white),
             visualDensity: VisualDensity.compact,
           ),
           Text(
@@ -420,14 +426,14 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isMobile ? 14 : 15,
               fontWeight: FontWeight.w700,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           IconButton(
             onPressed: () {
-              cart.increaseQuantity(item.food.id);
+              cart.increaseQuantity(item.product.id);
             },
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: AppColors.white),
             visualDensity: VisualDensity.compact,
           ),
         ],
@@ -448,18 +454,18 @@ class CartPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isMobile ? 15 : 17,
             fontWeight: FontWeight.w800,
-            color: AppColors.black,
+            color: AppColors.white,
           ),
         ),
         const SizedBox(height: 6),
         TextButton.icon(
           onPressed: () {
-            cart.removeFromCart(item.food.id);
+            cart.removeFromCart(item.product.id);
           },
           icon: const Icon(Icons.delete_outline, size: 18),
           label: const Text('Remove'),
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.deepOrange,
+            foregroundColor: AppColors.gold,
             padding: EdgeInsets.zero,
           ),
         ),
@@ -476,12 +482,12 @@ class CartPage extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 18 : 22),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),
@@ -495,11 +501,11 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isMobile ? 18 : 22,
               fontWeight: FontWeight.w800,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 18),
-                    _buildSummaryRow('Subtotal', cart.subtotal),
+          _buildSummaryRow('Subtotal', cart.subtotal),
           const SizedBox(height: 10),
           _buildSummaryTextRow('Delivery Fee', cart.deliveryFeeLabel),
           const SizedBox(height: 8),
@@ -508,13 +514,13 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isMobile ? 12 : 13,
               height: 1.5,
-              color: AppColors.greyText,
+              color: const Color(0xFFBDBDBD),
               fontWeight: FontWeight.w500,
             ),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(),
+            child: Divider(color: AppColors.charcoal),
           ),
           _buildSummaryRow(
             'Estimated Total',
@@ -526,19 +532,19 @@ class CartPage extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
-                foregroundColor: AppColors.white,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.primaryBlack,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
               onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const CheckoutPage()),
-  );
-},
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CheckoutPage()),
+                );
+              },
               child: const Text('Proceed to Checkout'),
             ),
           ),
@@ -547,8 +553,8 @@ class CartPage extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.deepOrange,
-                side: BorderSide(color: AppColors.deepOrange),
+                foregroundColor: AppColors.white,
+                side: const BorderSide(color: AppColors.charcoal),
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -578,7 +584,7 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 16 : 14,
               fontWeight: isTotal ? FontWeight.w800 : FontWeight.w500,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ),
@@ -587,13 +593,14 @@ class CartPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 15,
             fontWeight: isTotal ? FontWeight.w800 : FontWeight.w700,
-            color: isTotal ? AppColors.primaryGreen : AppColors.black,
+            color: isTotal ? AppColors.gold : AppColors.white,
           ),
         ),
       ],
     );
   }
-    Widget _buildSummaryTextRow(
+
+  Widget _buildSummaryTextRow(
     String label,
     String value, {
     bool isTotal = false,
@@ -607,7 +614,7 @@ class CartPage extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 16 : 14,
               fontWeight: isTotal ? FontWeight.w800 : FontWeight.w500,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ),
@@ -617,7 +624,7 @@ class CartPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 15,
             fontWeight: isTotal ? FontWeight.w800 : FontWeight.w700,
-            color: isTotal ? AppColors.primaryGreen : AppColors.black,
+            color: isTotal ? AppColors.gold : AppColors.white,
           ),
         ),
       ],

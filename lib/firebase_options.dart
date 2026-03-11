@@ -52,21 +52,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCh1ANrl-IgSym38ohnQZE2MaFnyYBKVzk',
-    appId: '1:880368061643:web:bd684c81c0f8e604209f4e',
-    messagingSenderId: '880368061643',
-    projectId: 'superfoods-kitchen',
-    authDomain: 'superfoods-kitchen.firebaseapp.com',
-    storageBucket: 'superfoods-kitchen.firebasestorage.app',
-    databaseURL: 'https://superfoods-kitchen-default-rtdb.firebaseio.com',
-  );
+  apiKey: 'AIzaSyB_u-9l5g1LQhOHMwdyjIBNHKQZwmPf1F8',
+  appId: '1:1075043554354:web:d56e36462e308bf070582b',
+  messagingSenderId: '1075043554354',
+  projectId: 'drip-too-hard-collection',
+  authDomain: 'drip-too-hard-collection.firebaseapp.com',
+  storageBucket: 'drip-too-hard-collection.firebasestorage.app',
+  databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
+);
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDHHsMsir8qTG7vIq4VDr_cJc6AmnqqUOs',
-    appId: '1:880368061643:android:b522ba768ab02f93209f4e',
-    messagingSenderId: '880368061643',
-    projectId: 'superfoods-kitchen',
-    storageBucket: 'superfoods-kitchen.firebasestorage.app',
-    databaseURL: 'https://superfoods-kitchen-default-rtdb.firebaseio.com',
-  );
+  apiKey: 'AIzaSyAzE6Mv46Iwu9Yjj9sB2Srexe2_DKuGDYg',
+  appId: '1:1075043554354:android:b136215de53b92d970582b',
+  messagingSenderId: '1075043554354',
+  projectId: 'drip-too-hard-collection',
+  storageBucket: 'drip-too-hard-collection.firebasestorage.app',
+  databaseURL: 'https://drip-too-hard-collection-default-rtdb.firebaseio.com',
+);
+
 }

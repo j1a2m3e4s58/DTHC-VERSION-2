@@ -39,9 +39,10 @@ class SuperFoodsApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryGreen,
+          seedColor: AppColors.gold,
+          brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: AppColors.softCream,
+        scaffoldBackgroundColor: AppColors.primaryBlack,
       ),
       home: const HomePage(),
     );

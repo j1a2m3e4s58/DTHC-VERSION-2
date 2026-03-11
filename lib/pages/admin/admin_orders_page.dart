@@ -42,10 +42,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             : allOrders;
 
     return Scaffold(
-      backgroundColor: AppColors.softCream,
+      backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.black,
+        backgroundColor: AppColors.softBlack,
+        foregroundColor: AppColors.white,
         elevation: 0,
         title: const Text(
           'Admin Orders',
@@ -58,16 +58,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 margin: const EdgeInsets.all(24),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.softBlack,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.charcoal),
                 ),
                 child: const Text(
                   'No customer orders yet.',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.greyText,
+                    color: Color(0xFFBDBDBD),
                   ),
                 ),
               ),
@@ -100,16 +100,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: AppColors.white,
+                            color: AppColors.softBlack,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: AppColors.charcoal),
                           ),
                           child: Text(
                             'No $selectedFilter orders found.',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.greyText,
+                              color: Color(0xFFBDBDBD),
                             ),
                           ),
                         )
@@ -194,8 +194,8 @@ class _OrdersTopSummary extends StatelessWidget {
                   title: 'Total Orders',
                   value: '$totalCount',
                   icon: Icons.receipt_long,
-                  iconColor: AppColors.primaryGreen,
-                  iconBackground: AppColors.lightGreen,
+                  iconColor: AppColors.gold,
+                  iconBackground: AppColors.charcoal,
                 ),
               ),
               const SizedBox(width: 12),
@@ -204,9 +204,8 @@ class _OrdersTopSummary extends StatelessWidget {
                   title: 'Pending',
                   value: '$pendingCount',
                   icon: Icons.access_time,
-                  iconColor: AppColors.deepOrange,
-                  iconBackground:
-                      AppColors.accentGold.withValues(alpha: 0.20),
+                  iconColor: AppColors.white,
+                  iconBackground: AppColors.charcoal,
                 ),
               ),
             ],
@@ -219,8 +218,8 @@ class _OrdersTopSummary extends StatelessWidget {
                   title: 'Delivered',
                   value: '$deliveredCount',
                   icon: Icons.check_circle,
-                  iconColor: AppColors.primaryGreen,
-                  iconBackground: AppColors.lightGreen,
+                  iconColor: AppColors.gold,
+                  iconBackground: AppColors.charcoal,
                 ),
               ),
               const Expanded(child: SizedBox()),
@@ -237,8 +236,8 @@ class _OrdersTopSummary extends StatelessWidget {
             title: 'Total Orders',
             value: '$totalCount',
             icon: Icons.receipt_long,
-            iconColor: AppColors.primaryGreen,
-            iconBackground: AppColors.lightGreen,
+            iconColor: AppColors.gold,
+            iconBackground: AppColors.charcoal,
           ),
         ),
         const SizedBox(width: 14),
@@ -247,8 +246,8 @@ class _OrdersTopSummary extends StatelessWidget {
             title: 'Pending',
             value: '$pendingCount',
             icon: Icons.access_time,
-            iconColor: AppColors.deepOrange,
-            iconBackground: AppColors.accentGold.withValues(alpha: 0.20),
+            iconColor: AppColors.white,
+            iconBackground: AppColors.charcoal,
           ),
         ),
         const SizedBox(width: 14),
@@ -257,8 +256,8 @@ class _OrdersTopSummary extends StatelessWidget {
             title: 'Delivered',
             value: '$deliveredCount',
             icon: Icons.check_circle,
-            iconColor: AppColors.primaryGreen,
-            iconBackground: AppColors.lightGreen,
+            iconColor: AppColors.gold,
+            iconBackground: AppColors.charcoal,
           ),
         ),
       ],
@@ -288,12 +287,12 @@ class _TopMetricCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(isMobile ? 12 : 18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
+            color: Color(0x22000000),
             blurRadius: 18,
             offset: Offset(0, 8),
           ),
@@ -318,7 +317,7 @@ class _TopMetricCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.black,
+                    color: AppColors.white,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -327,7 +326,7 @@ class _TopMetricCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: AppColors.greyText,
+                    color: Color(0xFFBDBDBD),
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -355,7 +354,7 @@ class _TopMetricCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.black,
+                          color: AppColors.white,
                         ),
                       ),
                       Text(
@@ -363,7 +362,7 @@ class _TopMetricCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppColors.greyText,
+                          color: Color(0xFFBDBDBD),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -391,27 +390,9 @@ class _FilterChipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = selected
-        ? (label == 'Delivered'
-            ? AppColors.primaryGreen
-            : label == 'Pending'
-                ? AppColors.deepOrange
-                : AppColors.darkGreen)
-        : AppColors.white;
-
-    final textColor = selected
-        ? AppColors.white
-        : (label == 'Delivered'
-            ? AppColors.primaryGreen
-            : label == 'Pending'
-                ? AppColors.deepOrange
-                : AppColors.darkGreen);
-
-    final borderColor = label == 'Delivered'
-        ? AppColors.primaryGreen.withValues(alpha: 0.30)
-        : label == 'Pending'
-            ? AppColors.deepOrange.withValues(alpha: 0.30)
-            : AppColors.darkGreen.withValues(alpha: 0.20);
+    final backgroundColor = selected ? AppColors.gold : AppColors.softBlack;
+    final textColor = selected ? AppColors.primaryBlack : AppColors.white;
+    final borderColor = selected ? AppColors.gold : AppColors.charcoal;
 
     return InkWell(
       onTap: onTap,
@@ -438,8 +419,8 @@ class _FilterChipButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.white.withValues(alpha: 0.18)
-                    : borderColor.withValues(alpha: 0.12),
+                    ? AppColors.white.withValues(alpha: 0.20)
+                    : AppColors.charcoal,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -483,25 +464,36 @@ class _PremiumOrderCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AppColors.softBlack,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text('Delete order?'),
+          title: const Text(
+            'Delete order?',
+            style: TextStyle(color: AppColors.white),
+          ),
           content: const Text(
             'This will permanently remove this delivered order from Firebase.',
+            style: TextStyle(color: Color(0xFFBDBDBD)),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context, false);
               },
-              child: const Text('Cancel'),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.white),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context, true);
               },
-              child: const Text('Delete'),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.gold),
+              ),
             ),
           ],
         );
@@ -527,24 +519,19 @@ class _PremiumOrderCard extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 800;
 
-    final Color statusBorder = order.isDelivered
-        ? AppColors.primaryGreen.withValues(alpha: 0.40)
-        : AppColors.deepOrange.withValues(alpha: 0.28);
-
-    final Color statusBackground = order.isDelivered
-        ? const Color(0xFFF1FBF4)
-        : const Color(0xFFFFF6EF);
+    final Color statusBorder =
+        order.isDelivered ? AppColors.gold : AppColors.charcoal;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: EdgeInsets.all(isMobile ? 18 : 22),
       decoration: BoxDecoration(
-        color: statusBackground,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: statusBorder),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
+            color: Color(0x22000000),
             blurRadius: 18,
             offset: Offset(0, 8),
           ),
@@ -646,9 +633,9 @@ class _PremiumOrderCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.primaryBlack,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.charcoal),
                   ),
                   child: Row(
                     children: [
@@ -657,21 +644,21 @@ class _PremiumOrderCard extends StatelessWidget {
                         child: Container(
                           height: 56,
                           width: 56,
-                          color: AppColors.lightGreen,
+                          color: AppColors.charcoal,
                           child: item.imageUrl.trim().isNotEmpty
                               ? Image.network(
                                   item.imageUrl,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Icon(
-                                      Icons.fastfood_rounded,
-                                      color: AppColors.primaryGreen,
+                                      Icons.shopping_bag_outlined,
+                                      color: AppColors.gold,
                                     );
                                   },
                                 )
                               : const Icon(
-                                  Icons.fastfood_rounded,
-                                  color: AppColors.primaryGreen,
+                                  Icons.shopping_bag_outlined,
+                                  color: AppColors.gold,
                                 ),
                         ),
                       ),
@@ -681,7 +668,7 @@ class _PremiumOrderCard extends StatelessWidget {
                           '${item.name} x${item.quantity}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.black,
+                            color: AppColors.white,
                           ),
                         ),
                       ),
@@ -693,7 +680,7 @@ class _PremiumOrderCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.black,
+                            color: AppColors.gold,
                           ),
                         ),
                       ),
@@ -708,13 +695,9 @@ class _PremiumOrderCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.primaryBlack,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: order.isDelivered
-                    ? AppColors.primaryGreen.withValues(alpha: 0.20)
-                    : AppColors.deepOrange.withValues(alpha: 0.15),
-              ),
+              border: Border.all(color: AppColors.charcoal),
             ),
             child: Column(
               children: [
@@ -723,13 +706,13 @@ class _PremiumOrderCard extends StatelessWidget {
                 _AmountRow('Delivery', order.deliveryFee),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(),
+                  child: Divider(color: AppColors.charcoal),
                 ),
                 _AmountRow(
                   'Total',
                   order.total,
                   isTotal: true,
-                  highlightGreen: order.isDelivered,
+                  highlightGold: true,
                 ),
               ],
             ),
@@ -752,11 +735,9 @@ class _OrderHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusText = order.isDelivered ? 'DELIVERED' : 'PENDING';
-    final statusBg = order.isDelivered
-        ? AppColors.lightGreen
-        : AppColors.accentGold.withValues(alpha: 0.20);
+    final statusBg = order.isDelivered ? AppColors.gold : AppColors.charcoal;
     final statusTextColor =
-        order.isDelivered ? AppColors.primaryGreen : AppColors.deepOrange;
+        order.isDelivered ? AppColors.primaryBlack : AppColors.white;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,7 +766,7 @@ class _OrderHeader extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.black,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 4),
@@ -794,7 +775,7 @@ class _OrderHeader extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -829,14 +810,14 @@ class _OrderHeader extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade100,
+                    color: AppColors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text(
+                  child: const Text(
                     'NEW',
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.red.shade900,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -873,8 +854,9 @@ class _OrderActions extends StatelessWidget {
           },
           style: ElevatedButton.styleFrom(
             backgroundColor:
-                isDelivered ? AppColors.deepOrange : AppColors.primaryGreen,
-            foregroundColor: Colors.white,
+                isDelivered ? AppColors.charcoal : AppColors.gold,
+            foregroundColor:
+                isDelivered ? AppColors.white : AppColors.primaryBlack,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -896,8 +878,8 @@ class _OrderActions extends StatelessWidget {
               await onDeleteOrder!();
             },
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red.shade700,
-              side: BorderSide(color: Colors.red.shade200),
+              foregroundColor: AppColors.white,
+              side: const BorderSide(color: AppColors.charcoal),
               padding:
                   const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -932,9 +914,9 @@ class _InfoSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.primaryBlack,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -944,7 +926,7 @@ class _InfoSection extends StatelessWidget {
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkGreen,
+              color: AppColors.gold,
             ),
           ),
           const SizedBox(height: 14),
@@ -969,13 +951,13 @@ class _InfoLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.primaryGreen),
+        Icon(icon, size: 18, color: AppColors.gold),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
-              color: AppColors.black,
+              color: AppColors.white,
               height: 1.5,
               fontWeight: FontWeight.w600,
             ),
@@ -990,20 +972,19 @@ class _AmountRow extends StatelessWidget {
   final String label;
   final double value;
   final bool isTotal;
-  final bool highlightGreen;
+  final bool highlightGold;
 
   const _AmountRow(
     this.label,
     this.value, {
     this.isTotal = false,
-    this.highlightGreen = false,
+    this.highlightGold = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final amountColor = isTotal
-        ? (highlightGreen ? AppColors.primaryGreen : AppColors.deepOrange)
-        : AppColors.black;
+    final amountColor =
+        isTotal ? (highlightGold ? AppColors.gold : AppColors.white) : AppColors.white;
 
     return Row(
       children: [
@@ -1013,7 +994,7 @@ class _AmountRow extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 17 : 14,
               fontWeight: isTotal ? FontWeight.w900 : FontWeight.w700,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ),

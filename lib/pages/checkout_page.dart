@@ -57,11 +57,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     try {
       final orderItems = cartController.items.map((cartItem) {
         return OrderItem(
-          foodId: cartItem.food.id,
-          name: cartItem.food.name,
-          price: cartItem.food.price,
+          foodId: cartItem.product.id,
+          name: cartItem.product.name,
+          price: cartItem.product.price,
           quantity: cartItem.quantity,
-          imageUrl: cartItem.food.imageUrl,
+          imageUrl: cartItem.product.imageUrl,
         );
       }).toList();
 
@@ -90,12 +90,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
+            backgroundColor: AppColors.softBlack,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(22),
             ),
-            title: const Text('Order placed'),
+            title: const Text(
+              'Order placed',
+              style: TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             content: const Text(
-              'Your order has been placed successfully. The store will contact you to confirm delivery details and the final delivery fee.',
+              'Your order has been placed successfully. DTHC will contact you to confirm delivery details and final delivery cost.',
+              style: TextStyle(
+                color: Color(0xFFBDBDBD),
+                height: 1.5,
+              ),
             ),
             actions: [
               TextButton(
@@ -103,7 +114,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: const Text('OK'),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(color: AppColors.gold),
+                ),
               ),
             ],
           );
@@ -135,11 +149,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final isTablet = width >= 800 && width < 1100;
 
     return Scaffold(
-      backgroundColor: AppColors.softCream,
+      backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.black,
+        backgroundColor: AppColors.softBlack,
+        foregroundColor: AppColors.white,
         title: const Text(
           'Checkout',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -147,7 +161,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
       body: items.isEmpty
           ? const Center(
-              child: Text('Your cart is empty. Add food before checkout.'),
+              child: Text(
+                'Your cart is empty. Add products before checkout.',
+                style: TextStyle(color: AppColors.white),
+              ),
             )
           : SingleChildScrollView(
               padding: EdgeInsets.symmetric(
@@ -204,7 +221,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       decoration: BoxDecoration(
         gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,16 +231,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontSize: isMobile ? 24 : 30,
               fontWeight: FontWeight.w900,
-              color: AppColors.darkGreen,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Fill in your details clearly so the store can confirm your order, delivery location, and final delivery fee.',
+            'Fill in your details clearly so DTHC can confirm your order, delivery location, and final delivery cost.',
             style: TextStyle(
               fontSize: isMobile ? 13.5 : 15,
               height: 1.6,
-              color: AppColors.greyText,
+              color: const Color(0xFFBDBDBD),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -237,12 +254,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 18 : 24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -259,12 +276,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   height: 52,
                   width: 52,
                   decoration: BoxDecoration(
-                    color: AppColors.lightGreen,
+                    color: AppColors.gold,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Icon(
                     Icons.person_outline,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.primaryBlack,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -277,14 +294,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.black,
+                          color: AppColors.white,
                         ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         'Enter the correct details for contact and delivery confirmation.',
                         style: TextStyle(
-                          color: AppColors.greyText,
+                          color: Color(0xFFBDBDBD),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -370,6 +387,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      style: const TextStyle(color: AppColors.white),
       validator: isOptional
           ? null
           : (value) {
@@ -380,25 +398,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
             },
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
+        labelStyle: const TextStyle(color: Color(0xFFBDBDBD)),
+        prefixIcon: Icon(icon, color: AppColors.gold),
         filled: true,
-        fillColor: AppColors.softCream,
+        fillColor: AppColors.primaryBlack,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 18,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.charcoal),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.charcoal),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(
-            color: AppColors.primaryGreen,
+            color: AppColors.gold,
             width: 1.5,
           ),
         ),
@@ -414,12 +433,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 18 : 22),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),
@@ -433,14 +452,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Review your selected items before placing your order.',
+            'Review your selected products before placing your order.',
             style: TextStyle(
-              color: AppColors.greyText,
+              color: Color(0xFFBDBDBD),
               height: 1.5,
               fontWeight: FontWeight.w500,
             ),
@@ -451,9 +470,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.softCream,
+                color: AppColors.primaryBlack,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.charcoal),
               ),
               child: Row(
                 children: [
@@ -462,31 +481,31 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     child: Container(
                       height: 58,
                       width: 58,
-                      color: AppColors.lightGreen,
-                      child: item.food.imageUrl.trim().isNotEmpty
+                      color: AppColors.charcoal,
+                      child: item.product.imageUrl.trim().isNotEmpty
                           ? Image.network(
-                              item.food.imageUrl,
+                              item.product.imageUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Icon(
-                                  Icons.fastfood_rounded,
-                                  color: AppColors.primaryGreen,
+                                  Icons.shopping_bag_outlined,
+                                  color: AppColors.gold,
                                 );
                               },
                             )
                           : const Icon(
-                              Icons.fastfood_rounded,
-                              color: AppColors.primaryGreen,
+                              Icons.shopping_bag_outlined,
+                              color: AppColors.gold,
                             ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '${item.food.name} x${item.quantity}',
+                      '${item.product.name} x${item.quantity}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.black,
+                        color: AppColors.white,
                       ),
                     ),
                   ),
@@ -495,7 +514,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     'GHS ${item.totalPrice.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.black,
+                      color: AppColors.gold,
                     ),
                   ),
                 ],
@@ -504,7 +523,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(),
+            child: Divider(color: AppColors.charcoal),
           ),
           _summaryAmountRow('Subtotal', cartController.subtotal),
           const SizedBox(height: 10),
@@ -515,7 +534,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: const TextStyle(
               fontSize: 12.5,
               height: 1.5,
-              color: AppColors.greyText,
+              color: Color(0xFFBDBDBD),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -531,8 +550,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _placeOrder,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
-                foregroundColor: AppColors.white,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.primaryBlack,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -544,7 +563,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.4,
-                        color: Colors.white,
+                        color: AppColors.primaryBlack,
                       ),
                     )
                   : const Text(
@@ -570,7 +589,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
               fontSize: isBold ? 17 : 14,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ),
@@ -579,7 +598,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: TextStyle(
             fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
             fontSize: isBold ? 18 : 14,
-            color: isBold ? AppColors.primaryGreen : AppColors.black,
+            color: isBold ? AppColors.gold : AppColors.white,
           ),
         ),
       ],
@@ -596,7 +615,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             style: TextStyle(
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
               fontSize: isBold ? 17 : 14,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ),
@@ -606,7 +625,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: TextStyle(
             fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
             fontSize: isBold ? 18 : 14,
-            color: isBold ? AppColors.primaryGreen : AppColors.black,
+            color: isBold ? AppColors.gold : AppColors.white,
           ),
         ),
       ],

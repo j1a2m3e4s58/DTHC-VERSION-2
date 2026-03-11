@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/category_item.dart';
 import '../models/food_item.dart';
+import '../models/food_pack.dart';
 import '../models/store_settings.dart';
 import 'mock_store_data.dart';
 
@@ -22,54 +23,129 @@ class StoreController extends ChangeNotifier {
     return items.where((category) => category.isActive).toList();
   }
 
-  List<FoodItem> getAllFoods() {
+  List<ProductItem> getAllProducts() {
     return [...MockStoreData.foodItems];
   }
 
-  List<FoodItem> getAvailableFoods() {
-    return MockStoreData.foodItems
-        .where((food) => food.isAvailable && food.stockQuantity > 0)
-        .toList();
-  }
-
-  List<FoodItem> getFoods() {
-    return getAvailableFoods();
-  }
-
-  List<FoodItem> getFeaturedFoods() {
+  List<ProductItem> getAvailableProducts() {
     return MockStoreData.foodItems
         .where(
-          (food) =>
-              food.isFeatured &&
-              food.isAvailable &&
-              food.stockQuantity > 0,
+          (product) =>
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty,
         )
         .toList();
   }
 
-  static const List<String> menuCategories = [
-    'All Items',
-    'Rice Meals',
-    'Snacks',
-    'Drinks',
-    'Special Packs',
-    'Bakery',
+  List<ProductItem> getProducts() {
+    return getAvailableProducts();
+  }
+
+  List<ProductItem> getFeaturedProducts() {
+    return MockStoreData.foodItems
+        .where(
+          (product) =>
+              product.isFeatured &&
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty,
+        )
+        .toList();
+  }
+
+  List<ProductItem> getNewArrivals() {
+    return MockStoreData.foodItems
+        .where(
+          (product) =>
+              product.isNewArrival &&
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty,
+        )
+        .toList();
+  }
+
+  List<ProductItem> getBestSellers() {
+    return MockStoreData.foodItems
+        .where(
+          (product) =>
+              product.isBestSeller &&
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty,
+        )
+        .toList();
+  }
+
+  List<CollectionModel> getCollections() {
+    return [...MockStoreData.collections];
+  }
+
+  List<CollectionModel> getFeaturedCollections() {
+    return MockStoreData.collections
+        .where((collection) => collection.isFeatured)
+        .toList();
+  }
+
+  static const List<String> shopCategories = [
+    'All',
+    'Tees',
+    'Sneakers',
+    'Caps',
+    'Chains',
+    'Belts',
+    'Socks',
   ];
 
-  List<FoodItem> getFoodsByCategory(String categoryName) {
-    if (categoryName == 'All Items') {
-      return getAvailableFoods();
+  List<ProductItem> getProductsByCategory(String categoryName) {
+    if (categoryName == 'All') {
+      return getAvailableProducts();
     }
 
     return MockStoreData.foodItems
         .where(
-          (food) =>
-              food.isAvailable &&
-              food.stockQuantity > 0 &&
-              food.category.trim().toLowerCase() ==
+          (product) =>
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty &&
+              product.category.trim().toLowerCase() ==
                   categoryName.trim().toLowerCase(),
         )
         .toList();
+  }
+
+  List<ProductItem> getProductsByCollection(String collectionName) {
+    return MockStoreData.foodItems
+        .where(
+          (product) =>
+              product.isAvailable &&
+              product.stockQuantity > 0 &&
+              product.imageUrls.isNotEmpty &&
+              product.collection.trim().toLowerCase() ==
+                  collectionName.trim().toLowerCase(),
+        )
+        .toList();
+  }
+
+  List<Map<String, dynamic>> getLookbookEntries() {
+    return List<Map<String, dynamic>>.from(MockStoreData.lookbookEntries);
+  }
+
+  List<Map<String, dynamic>> getPaymentMethods() {
+    return List<Map<String, dynamic>>.from(MockStoreData.paymentMethods);
+  }
+
+  List<Map<String, dynamic>> getDeliverySteps() {
+    return List<Map<String, dynamic>>.from(MockStoreData.deliverySteps);
+  }
+
+  List<Map<String, dynamic>> getReturnExchangeNotes() {
+    return List<Map<String, dynamic>>.from(MockStoreData.returnExchangeNotes);
+  }
+
+  List<Map<String, dynamic>> getContactChannels() {
+    return List<Map<String, dynamic>>.from(MockStoreData.contactChannels);
   }
 
   void updateStoreSettings(StoreSettings newSettings) {
@@ -77,21 +153,48 @@ class StoreController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateFoodItem(String id, FoodItem updatedItem) {
-    final index = MockStoreData.foodItems.indexWhere((food) => food.id == id);
+  void updateProductItem(String id, ProductItem updatedItem) {
+    final index =
+        MockStoreData.foodItems.indexWhere((product) => product.id == id);
     if (index != -1) {
       MockStoreData.foodItems[index] = updatedItem;
       notifyListeners();
     }
   }
 
-  void addFoodItem(FoodItem newFood) {
-    MockStoreData.foodItems.add(newFood);
+  void addProductItem(ProductItem newProduct) {
+    MockStoreData.foodItems.add(newProduct);
     notifyListeners();
   }
 
-  void deleteFoodItem(String id) {
-    MockStoreData.foodItems.removeWhere((food) => food.id == id);
+  void deleteProductItem(String id) {
+    MockStoreData.foodItems.removeWhere((product) => product.id == id);
     notifyListeners();
   }
+
+  // Legacy compatibility wrappers
+  List<FoodItem> getAllFoods() => getAllProducts();
+  List<FoodItem> getAvailableFoods() => getAvailableProducts();
+  List<FoodItem> getFoods() => getProducts();
+  List<FoodItem> getFeaturedFoods() => getFeaturedProducts();
+
+  static const List<String> menuCategories = [
+    'All',
+    'Tees',
+    'Sneakers',
+    'Caps',
+    'Chains',
+    'Belts',
+    'Socks',
+  ];
+
+  List<FoodItem> getFoodsByCategory(String categoryName) =>
+      getProductsByCategory(categoryName);
+
+  void updateFoodItem(String id, FoodItem updatedItem) =>
+      updateProductItem(id, updatedItem);
+
+  void addFoodItem(FoodItem newFood) => addProductItem(newFood);
+
+  void deleteFoodItem(String id) => deleteProductItem(id);
 }

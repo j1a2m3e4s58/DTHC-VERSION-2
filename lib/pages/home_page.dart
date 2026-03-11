@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../core/app_colors.dart';
+import '../data/cart_controller.dart';
 import '../data/store_controller.dart';
 import '../models/category_item.dart';
 import '../models/food_item.dart';
 import '../models/store_settings.dart';
 import '../widgets/custom_navbar.dart';
 import '../widgets/hero_section.dart';
-import '../widgets/order_banner.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
+import 'collections_page.dart';
+import 'contact_page.dart';
+import 'lookbook_page.dart';
 import 'menu_page.dart';
-import '../data/cart_controller.dart';
+import 'payment_delivery_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -21,9 +25,11 @@ class HomePage extends StatelessWidget {
     final controller = context.watch<StoreController>();
     final storeSettings = controller.getStoreSettings();
     final categories = controller.getCategories();
-    final featuredFoods = controller.getFeaturedFoods();
+    final featuredProducts = controller.getFeaturedProducts();
+    final newArrivals = controller.getNewArrivals();
+
     return Scaffold(
-      backgroundColor: AppColors.softCream,
+      backgroundColor: AppColors.primaryBlack,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -39,7 +45,7 @@ class HomePage extends StatelessWidget {
               onSpecialPacksTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MenuPage()),
+                  MaterialPageRoute(builder: (_) => const CollectionsPage()),
                 );
               },
               onCartTap: () {
@@ -49,21 +55,25 @@ class HomePage extends StatelessWidget {
                 );
               },
               onContactTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Contact section coming next.'),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ContactPage()),
                 );
               },
-              onTrackOrderTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Your order tracking feature will be available after the store confirms your order.',
-                    ),
-                  ),
-                );
-              },
+              onLookbookTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const LookbookPage()),
+  );
+},
+onDeliveryTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const PaymentDeliveryPage(),
+    ),
+  );
+},
               onOrderNowTap: () {
                 Navigator.push(
                   context,
@@ -79,7 +89,7 @@ class HomePage extends StatelessWidget {
                 );
               },
             ),
-                        HeroSection(
+            HeroSection(
               onOrderNowTap: () {
                 Navigator.push(
                   context,
@@ -94,8 +104,22 @@ class HomePage extends StatelessWidget {
               },
             ),
             _QuickCategorySection(categories: categories),
-            const OrderBanner(),
-            _FeaturedSection(featuredFoods: featuredFoods),
+            const _SiteHighlightsSection(),
+            _FeaturedSection(
+              title: 'Featured Products',
+              subtitle:
+                  'Top pieces from the latest DTHC drops, styled for bold everyday wear.',
+              products: featuredProducts,
+            ),
+            const _CollectionsPreviewSection(),
+            _FeaturedSection(
+              title: 'New Arrivals',
+              subtitle:
+                  'Fresh products just added to the store for your next fit upgrade.',
+              products: newArrivals,
+            ),
+            const _LookbookPreviewSection(),
+            const _PaymentDeliveryPreviewSection(),
             const _WhyChooseUsSection(),
             _FooterSection(storeSettings: storeSettings),
           ],
@@ -119,10 +143,10 @@ class _QuickCategorySection extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: AppColors.white,
+      color: AppColors.softBlack,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 16 : 32,
-        vertical: 26,
+        vertical: 30,
       ),
       child: Center(
         child: ConstrainedBox(
@@ -131,18 +155,18 @@ class _QuickCategorySection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Browse by category',
+                'Shop by category',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.darkGreen,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Help customers quickly jump into the kind of food or drink they want.',
+                'Explore premium streetwear pieces from tees, sneakers, caps, chains, belts, and socks.',
                 style: TextStyle(
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                   fontSize: 15,
                   height: 1.6,
                 ),
@@ -181,16 +205,18 @@ class _QuickCategorySection extends StatelessWidget {
 
   IconData _mapCategoryIcon(String iconName) {
     switch (iconName) {
-      case 'rice':
-        return Icons.rice_bowl_outlined;
-      case 'snack':
-        return Icons.cookie_outlined;
-      case 'drink':
-        return Icons.local_drink_outlined;
-      case 'offer':
-        return Icons.local_offer_outlined;
-      case 'bakery':
-        return Icons.bakery_dining_outlined;
+      case 'shirt':
+        return Icons.checkroom_outlined;
+      case 'shoe':
+        return Icons.run_circle_outlined;
+      case 'cap':
+        return Icons.workspace_premium_outlined;
+      case 'chain':
+        return Icons.link_rounded;
+      case 'belt':
+        return Icons.style_outlined;
+      case 'socks':
+        return Icons.sports_outlined;
       case 'grid':
       default:
         return Icons.grid_view_rounded;
@@ -213,10 +239,10 @@ class _CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: active ? AppColors.primaryGreen : AppColors.softCream,
+        color: active ? AppColors.gold : AppColors.charcoal,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: active ? AppColors.primaryGreen : AppColors.border,
+          color: active ? AppColors.gold : AppColors.charcoal,
         ),
       ),
       child: Padding(
@@ -227,14 +253,14 @@ class _CategoryChip extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: active ? AppColors.white : AppColors.darkGreen,
+              color: active ? AppColors.primaryBlack : AppColors.white,
             ),
             const SizedBox(width: 8),
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.w800,
-                color: active ? AppColors.white : AppColors.darkGreen,
+                color: active ? AppColors.primaryBlack : AppColors.white,
               ),
             ),
           ],
@@ -244,11 +270,127 @@ class _CategoryChip extends StatelessWidget {
   }
 }
 
+class _SiteHighlightsSection extends StatelessWidget {
+  const _SiteHighlightsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.primaryBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 16 : 32,
+        vertical: 28,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Wrap(
+            spacing: 18,
+            runSpacing: 18,
+            children: const [
+              _MiniHighlightCard(
+                icon: Icons.local_fire_department_outlined,
+                title: 'Weekly Drops',
+                subtitle: 'Fresh premium pieces added regularly.',
+              ),
+              _MiniHighlightCard(
+                icon: Icons.verified_outlined,
+                title: 'Curated Style',
+                subtitle: 'Bold looks selected for the DTHC brand vibe.',
+              ),
+              _MiniHighlightCard(
+                icon: Icons.local_shipping_outlined,
+                title: 'Nationwide Delivery',
+                subtitle: 'Fast dispatch and simple delivery flow.',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniHighlightCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _MiniHighlightCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 400,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 54,
+            width: 54,
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryBlack,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FeaturedSection extends StatelessWidget {
-  final List<FoodItem> featuredFoods;
+  final String title;
+  final String subtitle;
+  final List<ProductItem> products;
 
   const _FeaturedSection({
-    required this.featuredFoods,
+    required this.title,
+    required this.subtitle,
+    required this.products,
   });
 
   @override
@@ -257,7 +399,7 @@ class _FeaturedSection extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: AppColors.white,
+      color: AppColors.primaryBlack,
       padding: EdgeInsets.symmetric(
         horizontal: width < 768 ? 16 : 32,
         vertical: 40,
@@ -268,26 +410,26 @@ class _FeaturedSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Featured Favorites',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.darkGreen,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Make the homepage feel like a real food-ordering platform with quick, attractive meal cards.',
-                style: TextStyle(
+              Text(
+                subtitle,
+                style: const TextStyle(
                   fontSize: 15,
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                   height: 1.6,
                 ),
               ),
               const SizedBox(height: 24),
               GridView.builder(
-                itemCount: featuredFoods.length,
+                itemCount: products.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -305,8 +447,8 @@ class _FeaturedSection extends StatelessWidget {
                           : 0.95,
                 ),
                 itemBuilder: (context, index) {
-                  final food = featuredFoods[index];
-                  return _FoodPreviewCard(food: food);
+                  final product = products[index];
+                  return _ProductPreviewCard(product: product);
                 },
               ),
             ],
@@ -317,11 +459,11 @@ class _FeaturedSection extends StatelessWidget {
   }
 }
 
-class _FoodPreviewCard extends StatelessWidget {
-  final FoodItem food;
+class _ProductPreviewCard extends StatelessWidget {
+  final ProductItem product;
 
-  const _FoodPreviewCard({
-    required this.food,
+  const _ProductPreviewCard({
+    required this.product,
   });
 
   @override
@@ -329,12 +471,12 @@ class _FoodPreviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.softCream,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x10000000),
+            color: Color(0x22000000),
             blurRadius: 18,
             offset: Offset(0, 8),
           ),
@@ -348,22 +490,22 @@ class _FoodPreviewCard extends StatelessWidget {
             child: Container(
               height: 130,
               width: double.infinity,
-              color: AppColors.lightGreen,
-              child: food.imageUrl.trim().isEmpty
+              color: AppColors.charcoal,
+              child: product.imageUrl.trim().isEmpty
                   ? Center(
                       child: Icon(
-                        _foodIcon(food.category),
+                        _productIcon(product.category),
                         size: 56,
                         color: AppColors.white,
                       ),
                     )
                   : Image.network(
-                      food.imageUrl,
+                      product.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Center(
                           child: Icon(
-                            _foodIcon(food.category),
+                            _productIcon(product.category),
                             size: 56,
                             color: AppColors.white,
                           ),
@@ -374,32 +516,51 @@ class _FoodPreviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            food.name,
+            product.name,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            food.description,
+            product.description,
             style: const TextStyle(
               fontSize: 14,
-              color: AppColors.greyText,
+              color: Color(0xFFBDBDBD),
               height: 1.4,
               fontWeight: FontWeight.w500,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (product.isNewArrival)
+                _TagChip(
+                  label: 'New',
+                  backgroundColor: AppColors.gold,
+                  textColor: AppColors.primaryBlack,
+                ),
+              if (product.isBestSeller)
+                _TagChip(
+                  label: 'Best Seller',
+                  backgroundColor: AppColors.white,
+                  textColor: AppColors.primaryBlack,
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Text(
-            'GHC ${food.price.toStringAsFixed(0)}',
+            'GHS ${product.price.toStringAsFixed(0)}',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w900,
-              color: AppColors.deepOrange,
+              color: AppColors.gold,
             ),
           ),
           const Spacer(),
@@ -407,14 +568,14 @@ class _FoodPreviewCard extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: food.isAvailable
+                  onPressed: product.isAvailable
                       ? () {
-                          context.read<CartController>().addToCart(food);
+                          context.read<CartController>().addToCart(product);
 
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${food.name} added to cart'),
+                              content: Text('${product.name} added to cart'),
                               duration: const Duration(milliseconds: 900),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -422,8 +583,8 @@ class _FoodPreviewCard extends StatelessWidget {
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.primaryBlack,
                     disabledBackgroundColor: AppColors.border,
                     disabledForegroundColor: AppColors.greyText,
                     elevation: 0,
@@ -433,7 +594,7 @@ class _FoodPreviewCard extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    food.isAvailable ? 'Add to Cart' : 'Out of Stock',
+                    product.isAvailable ? 'Add to Cart' : 'Out of Stock',
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -441,21 +602,21 @@ class _FoodPreviewCard extends StatelessWidget {
               const SizedBox(width: 10),
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.charcoal,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.charcoal),
                 ),
                 child: IconButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${food.name} saved for later.'),
+                        content: Text('${product.name} saved for later.'),
                       ),
                     );
                   },
                   icon: const Icon(
                     Icons.favorite_border,
-                    color: AppColors.darkGreen,
+                    color: AppColors.white,
                   ),
                 ),
               ),
@@ -466,21 +627,586 @@ class _FoodPreviewCard extends StatelessWidget {
     );
   }
 
-  IconData _foodIcon(String category) {
+  IconData _productIcon(String category) {
     switch (category) {
-      case 'Rice Meals':
-        return Icons.rice_bowl;
-      case 'Drinks':
-        return Icons.local_drink;
-      case 'Bakery':
-        return Icons.bakery_dining;
-      case 'Snacks':
-        return Icons.cookie;
-      case 'Special Packs':
-        return Icons.local_offer;
+      case 'Tees':
+        return Icons.checkroom;
+      case 'Sneakers':
+        return Icons.run_circle;
+      case 'Caps':
+        return Icons.workspace_premium;
+      case 'Chains':
+        return Icons.link;
+      case 'Belts':
+        return Icons.style;
+      case 'Socks':
+        return Icons.sports;
       default:
-        return Icons.fastfood;
+        return Icons.shopping_bag;
     }
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  final String label;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const _TagChip({
+    required this.label,
+    required this.backgroundColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _CollectionsPreviewSection extends StatelessWidget {
+  const _CollectionsPreviewSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final cardWidth = width > 1100
+        ? 400.0
+        : width > 700
+            ? (width - 98) / 2
+            : double.infinity;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.softBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: width < 768 ? 16 : 32,
+        vertical: 40,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Featured Collections',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Give shoppers a structured way to explore drops, premium essentials, and bold statement pieces.',
+                style: TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  fontSize: 15,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 18,
+                runSpacing: 18,
+                children: [
+                  _CollectionPreviewCard(
+                    width: cardWidth,
+                    title: 'Urban Essentials',
+                    subtitle:
+                        'Minimal black-and-gold everyday pieces for clean city styling.',
+                    icon: Icons.layers_outlined,
+                  ),
+                  _CollectionPreviewCard(
+                    width: cardWidth,
+                    title: 'Weekend Heat',
+                    subtitle:
+                        'Statement sneakers, graphic tees, and standout accessories.',
+                    icon: Icons.local_fire_department_outlined,
+                  ),
+                  _CollectionPreviewCard(
+                    width: cardWidth,
+                    title: 'Luxury Street',
+                    subtitle:
+                        'Premium curated fits built for a bold upscale streetwear vibe.',
+                    icon: Icons.workspace_premium_outlined,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CollectionPreviewCard extends StatelessWidget {
+  final double width;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  const _CollectionPreviewCard({
+    required this.width,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.charcoal,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 62,
+            width: 62,
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryBlack,
+              size: 30,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 18),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CollectionsPage()),
+              );
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.gold,
+              side: const BorderSide(color: AppColors.gold),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              'Explore Collection',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LookbookPreviewSection extends StatelessWidget {
+  const _LookbookPreviewSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.primaryBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: width < 768 ? 16 : 32,
+        vertical: 40,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Lookbook Preview',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'A premium fashion gallery section helps the brand feel more editorial and high-end.',
+                style: TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  fontSize: 15,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 24),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 768) {
+                    return Column(
+                      children: const [
+                        _LookbookTile(
+                          height: 180,
+                          icon: Icons.camera_alt_outlined,
+                          title: 'Street Fit 01',
+                          subtitle: 'Monochrome layering with statement sneakers',
+                        ),
+                        SizedBox(height: 16),
+                        _LookbookTile(
+                          height: 180,
+                          icon: Icons.flash_on_outlined,
+                          title: 'Street Fit 02',
+                          subtitle: 'Bold drop styling with premium accessories',
+                        ),
+                        SizedBox(height: 16),
+                        _LookbookTile(
+                          height: 180,
+                          icon: Icons.nightlife_outlined,
+                          title: 'Street Fit 03',
+                          subtitle:
+                              'Clean night-out fashion with elevated essentials',
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: const [
+                      Expanded(
+                        flex: 2,
+                        child: _LookbookTile(
+                          height: 380,
+                          icon: Icons.camera_alt_outlined,
+                          title: 'Street Fit 01',
+                          subtitle: 'Monochrome layering with statement sneakers',
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            _LookbookTile(
+                              height: 182,
+                              icon: Icons.flash_on_outlined,
+                              title: 'Street Fit 02',
+                              subtitle:
+                                  'Bold drop styling with premium accessories',
+                            ),
+                            SizedBox(height: 16),
+                            _LookbookTile(
+                              height: 182,
+                              icon: Icons.nightlife_outlined,
+                              title: 'Street Fit 03',
+                              subtitle:
+                                  'Clean night-out fashion with elevated essentials',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LookbookPage()),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: const BorderSide(color: AppColors.gold),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'Open Lookbook',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LookbookTile extends StatelessWidget {
+  final double height;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _LookbookTile({
+    required this.height,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2B2B2B),
+            Color(0xFF121212),
+          ],
+        ),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: 18,
+            top: 18,
+            child: Icon(
+              icon,
+              size: 38,
+              color: AppColors.gold.withValues(alpha: 0.85),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFFD0D0D0),
+                    height: 1.5,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentDeliveryPreviewSection extends StatelessWidget {
+  const _PaymentDeliveryPreviewSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.softBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: width < 768 ? 16 : 32,
+        vertical: 40,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Payment & Delivery',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Show customers how they can pay, how deliveries work, and what to expect after ordering.',
+                style: TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  fontSize: 15,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Wrap(
+                spacing: 18,
+                runSpacing: 18,
+                children: const [
+                  _InfoCard(
+                    icon: Icons.phone_iphone_outlined,
+                    title: 'MoMo Payments',
+                    subtitle:
+                        'Accept MTN MoMo and other convenient local payment options.',
+                  ),
+                  _InfoCard(
+                    icon: Icons.credit_card_outlined,
+                    title: 'Card Payments',
+                    subtitle:
+                        'Support debit and card payment flow for flexible checkout.',
+                  ),
+                  _InfoCard(
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Delivery Process',
+                    subtitle:
+                        'Explain dispatch time, delivery zones, and order confirmation.',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PaymentDeliveryPage(),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.gold,
+                  side: const BorderSide(color: AppColors.gold),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'View Payment & Delivery',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 400,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.charcoal,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 58,
+            width: 58,
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryBlack,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -493,7 +1219,7 @@ class _WhyChooseUsSection extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: AppColors.cream,
+      color: AppColors.softBlack,
       padding: EdgeInsets.symmetric(
         horizontal: width < 768 ? 16 : 32,
         vertical: 40,
@@ -504,20 +1230,20 @@ class _WhyChooseUsSection extends StatelessWidget {
           child: Column(
             children: [
               const Text(
-                'Why customers will love SuperFoods',
+                'Why people will love DTHC',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.darkGreen,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 12),
               const Text(
-                'Responsive design, clear ordering flow, colorful presentation, and attractive packs for every kind of buyer.',
+                'Premium styling, mobile-friendly shopping, bold product presentation, and a clean streetwear brand experience.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                   fontSize: 15,
                   height: 1.6,
                 ),
@@ -531,17 +1257,17 @@ class _WhyChooseUsSection extends StatelessWidget {
                   _ReasonCard(
                     icon: Icons.phone_android,
                     title: 'Mobile Friendly',
-                    subtitle: 'Looks great on phones, tablets, and desktop.',
+                    subtitle: 'Looks clean on phone, tablet, and desktop.',
                   ),
                   _ReasonCard(
-                    icon: Icons.lock_clock,
-                    title: 'Fast Ordering',
-                    subtitle: 'Quick item selection, cart, and checkout flow.',
+                    icon: Icons.local_shipping_outlined,
+                    title: 'Easy Ordering',
+                    subtitle: 'Smooth product selection, cart, and checkout.',
                   ),
                   _ReasonCard(
-                    icon: Icons.palette,
-                    title: 'Colorful Branding',
-                    subtitle: 'Matches the flyer feel in a modern UI.',
+                    icon: Icons.auto_awesome,
+                    title: 'Premium Vibe',
+                    subtitle: 'A bold fashion brand feel with polished visuals.',
                   ),
                 ],
               ),
@@ -570,11 +1296,11 @@ class _ReasonCard extends StatelessWidget {
       width: 280,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.charcoal,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
+            color: Color(0x22000000),
             blurRadius: 18,
             offset: Offset(0, 8),
           ),
@@ -586,12 +1312,12 @@ class _ReasonCard extends StatelessWidget {
             height: 62,
             width: 62,
             decoration: BoxDecoration(
-              color: AppColors.lightGreen,
+              color: AppColors.gold,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
               icon,
-              color: AppColors.primaryGreen,
+              color: AppColors.primaryBlack,
               size: 30,
             ),
           ),
@@ -602,7 +1328,7 @@ class _ReasonCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 8),
@@ -610,7 +1336,7 @@ class _ReasonCard extends StatelessWidget {
             subtitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AppColors.greyText,
+              color: Color(0xFFBDBDBD),
               height: 1.6,
               fontWeight: FontWeight.w500,
             ),
@@ -632,7 +1358,7 @@ class _FooterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: AppColors.darkGreen,
+      color: Colors.black,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       child: Center(
         child: Column(
@@ -650,18 +1376,27 @@ class _FooterSection extends StatelessWidget {
               storeSettings.heroSubtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFFD1FAE5),
+                color: Color(0xFFBDBDBD),
                 fontSize: 14,
                 height: 1.6,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               'Call: ${storeSettings.phoneNumber}',
               style: const TextStyle(
-                color: AppColors.accentGold,
+                color: AppColors.gold,
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Instagram: ${storeSettings.instagram}   •   TikTok: ${storeSettings.tiktok}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 13,
               ),
             ),
           ],

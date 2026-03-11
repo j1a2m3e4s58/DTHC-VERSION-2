@@ -1,32 +1,42 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primaryGreen = Color(0xFF166534);
-  static const Color darkGreen = Color(0xFF14532D);
-  static const Color lightGreen = Color(0xFFDCFCE7);
-
-  static const Color cream = Color(0xFFF8F1DE);
-  static const Color softCream = Color(0xFFFFFBF2);
-
-  static const Color accentGold = Color(0xFFEAB308);
-  static const Color deepOrange = Color(0xFF9A3412);
-  static const Color warmBrown = Color(0xFF7C2D12);
+  // New DTHC brand colors
+  static const Color primaryBlack = Color(0xFF0F0F0F);
+  static const Color softBlack = Color(0xFF1A1A1A);
+  static const Color charcoal = Color(0xFF262626);
 
   static const Color white = Colors.white;
-  static const Color black = Color(0xFF111827);
+  static const Color lightGrey = Color(0xFFF5F5F5);
   static const Color greyText = Color(0xFF6B7280);
-  static const Color border = Color(0xFFE5E7EB);
+  static const Color gold = Color(0xFFD4AF37);
+  static const Color deepGold = Color(0xFFB8962E);
 
   static const Color success = Color(0xFF16A34A);
   static const Color danger = Color(0xFFDC2626);
+  static const Color border = Color(0xFFE5E7EB);
 
   static const LinearGradient heroGradient = LinearGradient(
     colors: [
-      Color(0xFFF8F1DE),
-      Color(0xFFFDF7EA),
-      Color(0xFFECFCCB),
+      Color(0xFF0F0F0F),
+      Color(0xFF1A1A1A),
+      Color(0xFF262626),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // Legacy compatibility aliases
+  static const Color primaryGreen = gold;
+  static const Color darkGreen = white;
+  static const Color lightGreen = Color(0xFF2A2A2A);
+
+  static const Color cream = primaryBlack;
+  static const Color softCream = softBlack;
+
+  static const Color accentGold = gold;
+  static const Color deepOrange = gold;
+  static const Color warmBrown = deepGold;
+
+  static const Color black = primaryBlack;
 }

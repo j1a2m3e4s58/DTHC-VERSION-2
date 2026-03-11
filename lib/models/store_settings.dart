@@ -4,12 +4,20 @@ class StoreSettings {
   final String phoneNumber;
   final String email;
   final String address;
+
   final String logoUrl;
+
   final String heroTitle;
   final String heroSubtitle;
+
   final String announcementText;
+
   final double deliveryFee;
-  final double minimumOrderAmount;
+  final double freeDeliveryThreshold;
+
+  final String instagram;
+  final String twitter;
+  final String tiktok;
 
   const StoreSettings({
     required this.storeName,
@@ -22,7 +30,10 @@ class StoreSettings {
     required this.heroSubtitle,
     required this.announcementText,
     required this.deliveryFee,
-    required this.minimumOrderAmount,
+    required this.freeDeliveryThreshold,
+    required this.instagram,
+    required this.twitter,
+    required this.tiktok,
   });
 
   StoreSettings copyWith({
@@ -36,7 +47,10 @@ class StoreSettings {
     String? heroSubtitle,
     String? announcementText,
     double? deliveryFee,
-    double? minimumOrderAmount,
+    double? freeDeliveryThreshold,
+    String? instagram,
+    String? twitter,
+    String? tiktok,
   }) {
     return StoreSettings(
       storeName: storeName ?? this.storeName,
@@ -49,7 +63,11 @@ class StoreSettings {
       heroSubtitle: heroSubtitle ?? this.heroSubtitle,
       announcementText: announcementText ?? this.announcementText,
       deliveryFee: deliveryFee ?? this.deliveryFee,
-      minimumOrderAmount: minimumOrderAmount ?? this.minimumOrderAmount,
+      freeDeliveryThreshold:
+          freeDeliveryThreshold ?? this.freeDeliveryThreshold,
+      instagram: instagram ?? this.instagram,
+      twitter: twitter ?? this.twitter,
+      tiktok: tiktok ?? this.tiktok,
     );
   }
 }

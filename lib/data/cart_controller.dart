@@ -25,29 +25,29 @@ class CartController extends ChangeNotifier {
   }
 
   String get deliveryFeeLabel =>
-      _items.isEmpty ? '—' : 'To be confirmed';
+      _items.isEmpty ? '—' : 'Calculated at checkout';
 
   String get deliveryNote =>
-      'Delivery fee will be confirmed by the store based on your location.';
+      'Delivery cost depends on your location in Ghana and order size.';
 
   double get estimatedTotal => subtotal;
 
   bool get isEmpty => _items.isEmpty;
 
-  void addToCart(FoodItem food) {
-    final index = _items.indexWhere((item) => item.food.id == food.id);
+  void addToCart(ProductItem product) {
+    final index = _items.indexWhere((item) => item.product.id == product.id);
 
     if (index != -1) {
       _items[index].quantity += 1;
     } else {
-      _items.add(CartItem(food: food));
+      _items.add(CartItem(product: product));
     }
 
     notifyListeners();
   }
 
-  void decreaseQuantity(String foodId) {
-    final index = _items.indexWhere((item) => item.food.id == foodId);
+  void decreaseQuantity(String productId) {
+    final index = _items.indexWhere((item) => item.product.id == productId);
 
     if (index == -1) return;
 
@@ -60,8 +60,8 @@ class CartController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void increaseQuantity(String foodId) {
-    final index = _items.indexWhere((item) => item.food.id == foodId);
+  void increaseQuantity(String productId) {
+    final index = _items.indexWhere((item) => item.product.id == productId);
 
     if (index == -1) return;
 
@@ -69,8 +69,8 @@ class CartController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeFromCart(String foodId) {
-    _items.removeWhere((item) => item.food.id == foodId);
+  void removeFromCart(String productId) {
+    _items.removeWhere((item) => item.product.id == productId);
     notifyListeners();
   }
 

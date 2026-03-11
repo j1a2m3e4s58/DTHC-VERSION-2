@@ -36,16 +36,17 @@ class _HeroSectionState extends State<HeroSection> {
   void _restartAutoSlide() {
     _autoSlideTimer?.cancel();
 
-    final featuredFoods = context.read<StoreController>().getFeaturedFoods();
+    final featuredProducts =
+        context.read<StoreController>().getFeaturedProducts();
 
-    if (featuredFoods.length > 1) {
+    if (featuredProducts.length > 1) {
       _autoSlideTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
         if (!_pageController.hasClients) return;
 
-        final foods = context.read<StoreController>().getFeaturedFoods();
-        if (foods.length <= 1) return;
+        final products = context.read<StoreController>().getFeaturedProducts();
+        if (products.length <= 1) return;
 
-        final nextPage = (_currentIndex + 1) % foods.length;
+        final nextPage = (_currentIndex + 1) % products.length;
 
         _pageController.animateToPage(
           nextPage,
@@ -68,12 +69,13 @@ class _HeroSectionState extends State<HeroSection> {
     final width = MediaQuery.of(context).size.width;
     final storeController = context.watch<StoreController>();
     final StoreSettings storeSettings = storeController.getStoreSettings();
-    final List<FoodItem> featuredFoods = storeController.getFeaturedFoods();
+    final List<ProductItem> featuredProducts =
+        storeController.getFeaturedProducts();
 
     final isMobile = width < 768;
     final isTablet = width >= 768 && width < 1100;
 
-    if (_currentIndex >= featuredFoods.length && featuredFoods.isNotEmpty) {
+    if (_currentIndex >= featuredProducts.length && featuredProducts.isNotEmpty) {
       _currentIndex = 0;
     }
 
@@ -91,8 +93,12 @@ class _HeroSectionState extends State<HeroSection> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1280),
             child: isMobile
-                ? _buildMobileLayout(storeSettings, featuredFoods)
-                : _buildDesktopLayout(isTablet, storeSettings, featuredFoods),
+                ? _buildMobileLayout(storeSettings, featuredProducts)
+                : _buildDesktopLayout(
+                    isTablet,
+                    storeSettings,
+                    featuredProducts,
+                  ),
           ),
         ),
       ),
@@ -102,7 +108,7 @@ class _HeroSectionState extends State<HeroSection> {
   Widget _buildDesktopLayout(
     bool isTablet,
     StoreSettings storeSettings,
-    List<FoodItem> featuredFoods,
+    List<ProductItem> featuredProducts,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -121,7 +127,7 @@ class _HeroSectionState extends State<HeroSection> {
           flex: 9,
           child: _HeroImageCard(
             isTablet: isTablet,
-            featuredFoods: featuredFoods,
+            featuredProducts: featuredProducts,
             pageController: _pageController,
             currentIndex: _currentIndex,
             onPageChanged: (index) {
@@ -139,7 +145,7 @@ class _HeroSectionState extends State<HeroSection> {
 
   Widget _buildMobileLayout(
     StoreSettings storeSettings,
-    List<FoodItem> featuredFoods,
+    List<ProductItem> featuredProducts,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +159,7 @@ class _HeroSectionState extends State<HeroSection> {
         const SizedBox(height: 24),
         _HeroImageCard(
           isTablet: false,
-          featuredFoods: featuredFoods,
+          featuredProducts: featuredProducts,
           pageController: _pageController,
           currentIndex: _currentIndex,
           onPageChanged: (index) {
@@ -190,13 +196,13 @@ class _HeroTextContent extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.lightGreen,
+            color: AppColors.gold,
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
             storeSettings.tagline,
             style: const TextStyle(
-              color: AppColors.darkGreen,
+              color: AppColors.primaryBlack,
               fontWeight: FontWeight.w700,
               fontSize: 13,
             ),
@@ -209,7 +215,7 @@ class _HeroTextContent extends StatelessWidget {
             fontSize: isMobile ? 34 : 56,
             height: 1.05,
             fontWeight: FontWeight.w900,
-            color: AppColors.darkGreen,
+            color: AppColors.white,
           ),
         ),
         const SizedBox(height: 16),
@@ -218,7 +224,7 @@ class _HeroTextContent extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             height: 1.7,
-            color: AppColors.greyText,
+            color: Color(0xFFBDBDBD),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -230,8 +236,8 @@ class _HeroTextContent extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onOrderNowTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
-                foregroundColor: AppColors.white,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.primaryBlack,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 22,
@@ -241,9 +247,9 @@ class _HeroTextContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(Icons.shopping_cart_checkout),
+              icon: const Icon(Icons.shopping_bag_outlined),
               label: const Text(
-                'Order Now',
+                'Shop Now',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                 ),
@@ -252,8 +258,8 @@ class _HeroTextContent extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onViewMenuTap,
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.darkGreen,
-                side: const BorderSide(color: AppColors.primaryGreen),
+                foregroundColor: AppColors.white,
+                side: const BorderSide(color: AppColors.gold),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 22,
                   vertical: 18,
@@ -262,9 +268,9 @@ class _HeroTextContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(Icons.restaurant_menu),
+              icon: const Icon(Icons.auto_awesome_outlined),
               label: const Text(
-                'View Menu',
+                'Explore Collections',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                 ),
@@ -278,20 +284,20 @@ class _HeroTextContent extends StatelessWidget {
           runSpacing: 12,
           children: const [
             _MiniInfoCard(
-              title: 'Fast Delivery',
-              icon: Icons.delivery_dining,
+              title: 'Premium Streetwear',
+              icon: Icons.auto_awesome,
             ),
             _MiniInfoCard(
-              title: 'Fresh Daily Menu',
-              icon: Icons.local_dining,
+              title: 'New Drops',
+              icon: Icons.local_fire_department_outlined,
             ),
             _MiniInfoCard(
-              title: 'Special Pack Deals',
-              icon: Icons.local_offer,
+              title: 'Ghana Delivery',
+              icon: Icons.local_shipping_outlined,
             ),
             _MiniInfoCard(
               title: 'Easy Checkout',
-              icon: Icons.shopping_bag_outlined,
+              icon: Icons.shopping_cart_checkout,
             ),
           ],
         ),
@@ -302,14 +308,14 @@ class _HeroTextContent extends StatelessWidget {
 
 class _HeroImageCard extends StatelessWidget {
   final bool isTablet;
-  final List<FoodItem> featuredFoods;
+  final List<ProductItem> featuredProducts;
   final PageController pageController;
   final int currentIndex;
   final ValueChanged<int> onPageChanged;
 
   const _HeroImageCard({
     required this.isTablet,
-    required this.featuredFoods,
+    required this.featuredProducts,
     required this.pageController,
     required this.currentIndex,
     required this.onPageChanged,
@@ -317,18 +323,18 @@ class _HeroImageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentFood = featuredFoods.isEmpty
+    final currentProduct = featuredProducts.isEmpty
         ? null
-        : featuredFoods[currentIndex % featuredFoods.length];
+        : featuredProducts[currentIndex % featuredProducts.length];
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: Color(0x26000000),
             blurRadius: 30,
             offset: Offset(0, 12),
           ),
@@ -343,8 +349,8 @@ class _HeroImageCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF166534),
-                  Color(0xFF15803D),
+                  Color(0xFF0F0F0F),
+                  Color(0xFF262626),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -352,10 +358,10 @@ class _HeroImageCard extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                if (featuredFoods.isEmpty)
+                if (featuredProducts.isEmpty)
                   Center(
                     child: Icon(
-                      Icons.fastfood,
+                      Icons.shopping_bag,
                       size: isTablet ? 110 : 140,
                       color: AppColors.white.withValues(alpha: 0.95),
                     ),
@@ -365,19 +371,19 @@ class _HeroImageCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(22),
                     child: PageView.builder(
                       controller: pageController,
-                      itemCount: featuredFoods.length,
+                      itemCount: featuredProducts.length,
                       onPageChanged: onPageChanged,
                       itemBuilder: (context, index) {
-                        final food = featuredFoods[index];
+                        final product = featuredProducts[index];
                         return Image.network(
-                          food.imageUrl,
+                          product.imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: AppColors.primaryGreen,
+                              color: AppColors.charcoal,
                               child: Center(
                                 child: Icon(
-                                  Icons.fastfood,
+                                  Icons.shopping_bag,
                                   size: isTablet ? 110 : 140,
                                   color: AppColors.white.withValues(alpha: 0.95),
                                 ),
@@ -397,25 +403,25 @@ class _HeroImageCard extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.accentGold,
+                      color: AppColors.gold,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: const Text(
-                      'Today’s Special',
+                      'Featured Drop',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.black,
+                        color: AppColors.primaryBlack,
                       ),
                     ),
                   ),
                 ),
-                if (featuredFoods.isNotEmpty)
+                if (featuredProducts.isNotEmpty)
                   Positioned(
                     left: 18,
                     bottom: 18,
                     child: Row(
                       children: List.generate(
-                        featuredFoods.length,
+                        featuredProducts.length,
                         (index) => Container(
                           margin: const EdgeInsets.only(right: 8),
                           width: currentIndex == index ? 22 : 8,
@@ -443,22 +449,22 @@ class _HeroImageCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          currentFood?.name ?? 'Today’s Meal',
+                          currentProduct?.name ?? 'Featured Product',
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 18,
-                            color: AppColors.darkGreen,
+                            color: AppColors.primaryBlack,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          currentFood == null
-                              ? 'GHC 0'
-                              : 'GHC ${currentFood.price.toStringAsFixed(0)}',
+                          currentProduct == null
+                              ? 'GHS 0'
+                              : 'GHS ${currentProduct.price.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 20,
-                            color: AppColors.deepOrange,
+                            color: AppColors.gold,
                           ),
                         ),
                       ],
@@ -473,15 +479,15 @@ class _HeroImageCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroStatCard(
-                  title: '20+ Meals',
-                  subtitle: 'Fresh dishes',
+                  title: 'New Arrivals',
+                  subtitle: 'Fresh weekly drops',
                 ),
               ),
               SizedBox(width: 12),
               Expanded(
                 child: _HeroStatCard(
-                  title: 'Quick Order',
-                  subtitle: 'Simple checkout',
+                  title: 'Easy Shopping',
+                  subtitle: 'Smooth checkout flow',
                 ),
               ),
             ],
@@ -506,9 +512,9 @@ class _HeroStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.softCream,
+        color: AppColors.charcoal,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,14 +524,14 @@ class _HeroStatCard extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: AppColors.darkGreen,
+              color: AppColors.white,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
             style: const TextStyle(
-              color: AppColors.greyText,
+              color: Color(0xFFBDBDBD),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -549,26 +555,27 @@ class _MiniInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.softBlack,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x11000000),
+            color: Color(0x16000000),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
         ],
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.primaryGreen, size: 20),
+          Icon(icon, color: AppColors.gold, size: 20),
           const SizedBox(width: 8),
           Text(
             title,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: AppColors.black,
+              color: AppColors.white,
             ),
           ),
         ],

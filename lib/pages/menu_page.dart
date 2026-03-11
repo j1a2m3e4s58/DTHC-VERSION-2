@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'lookbook_page.dart';
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
 import '../data/store_controller.dart';
@@ -9,7 +9,10 @@ import '../widgets/custom_navbar.dart';
 import '../widgets/food_card.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
+import 'collections_page.dart';
+import 'contact_page.dart';
 import 'home_page.dart';
+import 'payment_delivery_page.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -19,32 +22,28 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
-  final StoreController controller = StoreController();
+  String selectedCategory = 'All';
 
-  String selectedCategory = 'All Items';
-  
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
+    final width = MediaQuery.of(context).size.width;
+
     final storeController = context.watch<StoreController>();
-    final allFoods = storeController.getAvailableFoods();
+    final allProducts = storeController.getAvailableProducts();
 
     final bool isMobile = width < 700;
     final bool isTablet = width >= 700 && width < 1100;
 
-    final List<FoodItem> filteredFoods = selectedCategory == 'All Items'
-        ? allFoods
-        : allFoods
-            .where((food) => food.category == selectedCategory)
-            .toList();
+    final List<ProductItem> filteredProducts = selectedCategory == 'All'
+        ? allProducts
+        : allProducts.where((p) => p.category == selectedCategory).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.softCream,
+      backgroundColor: AppColors.primaryBlack,
       body: Column(
         children: [
           CustomNavbar(
-            activeItem: 'Menu',
+            activeItem: 'Shop',
             onHomeTap: () {
               Navigator.pushReplacement(
                 context,
@@ -53,9 +52,10 @@ class _MenuPageState extends State<MenuPage> {
             },
             onMenuTap: () {},
             onSpecialPacksTap: () {
-              setState(() {
-                selectedCategory = 'Special Packs';
-              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CollectionsPage()),
+              );
             },
             onCartTap: () {
               Navigator.push(
@@ -64,27 +64,26 @@ class _MenuPageState extends State<MenuPage> {
               );
             },
             onContactTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Contact section coming next.'),
-                ),
-              );
-            },
-            onTrackOrderTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Your order tracking feature will be available after the store confirms your order.',
-                  ),
-                ),
-              );
-            },
-            onOrderNowTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CartPage()),
+                MaterialPageRoute(builder: (_) => const ContactPage()),
               );
             },
+            onLookbookTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const LookbookPage()),
+  );
+},
+onDeliveryTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const PaymentDeliveryPage(),
+    ),
+  );
+},
+            onOrderNowTap: () {},
             onAdminTap: () {
               Navigator.push(
                 context,
@@ -111,9 +110,9 @@ class _MenuPageState extends State<MenuPage> {
                         const SizedBox(height: 24),
                         _buildCategoryFilters(isMobile),
                         const SizedBox(height: 28),
-                        _buildFoodSection(
+                        _buildProductGrid(
                           context: context,
-                          foods: filteredFoods,
+                          products: filteredProducts,
                           isMobile: isMobile,
                           isTablet: isTablet,
                         ),
@@ -128,6 +127,7 @@ class _MenuPageState extends State<MenuPage> {
       ),
     );
   }
+
   Widget _buildHeader(BuildContext context, bool isMobile) {
     final cartCount = context.watch<CartController>().totalItemsCount;
 
@@ -135,21 +135,21 @@ class _MenuPageState extends State<MenuPage> {
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Our Menu',
+              const Text(
+                'Shop DTHC',
                 style: TextStyle(
                   fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                'Browse delicious meals, snacks, drinks, bakery items, and special packs prepared for every craving.',
+              const Text(
+                'Premium streetwear. Limited drops. Built for real drip.',
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.6,
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                 ),
               ),
               const SizedBox(height: 18),
@@ -157,8 +157,8 @@ class _MenuPageState extends State<MenuPage> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.primaryBlack,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
                       vertical: 14,
@@ -175,7 +175,7 @@ class _MenuPageState extends State<MenuPage> {
                   },
                   icon: const Icon(Icons.shopping_cart_outlined),
                   label: Text(
-                    cartCount > 0 ? 'Open Cart ($cartCount)' : 'Open Cart',
+                    cartCount > 0 ? 'Cart ($cartCount)' : 'Open Cart',
                   ),
                 ),
               ),
@@ -184,35 +184,34 @@ class _MenuPageState extends State<MenuPage> {
         : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Our Menu',
+                      'Shop DTHC',
                       style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.black,
+                        fontSize: 42,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.white,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Browse delicious meals, snacks, drinks, bakery items, and special packs prepared for every craving.',
+                    SizedBox(height: 10),
+                    Text(
+                      'Streetwear collections designed for bold expression.',
                       style: TextStyle(
                         fontSize: 16,
                         height: 1.6,
-                        color: AppColors.greyText,
+                        color: Color(0xFFBDBDBD),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.primaryBlack,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
                     vertical: 14,
@@ -229,7 +228,7 @@ class _MenuPageState extends State<MenuPage> {
                 },
                 icon: const Icon(Icons.shopping_cart_outlined),
                 label: Text(
-                  cartCount > 0 ? 'Open Cart ($cartCount)' : 'Open Cart',
+                  cartCount > 0 ? 'Cart ($cartCount)' : 'Open Cart',
                 ),
               ),
             ],
@@ -237,7 +236,15 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   Widget _buildCategoryFilters(bool isMobile) {
-    final categories = StoreController.menuCategories;
+    const categories = [
+      'All',
+      'Tees',
+      'Sneakers',
+      'Caps',
+      'Chains',
+      'Belts',
+      'Socks',
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -261,27 +268,20 @@ class _MenuPageState extends State<MenuPage> {
                   vertical: isMobile ? 10 : 12,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryGreen : AppColors.white,
+                  color: isSelected ? AppColors.gold : AppColors.softBlack,
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
-                    color: isSelected
-                        ? AppColors.primaryGreen
-                        : AppColors.primaryGreen.withValues(alpha: 0.18),
+                    color: isSelected ? AppColors.gold : AppColors.charcoal,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
                 ),
                 child: Text(
                   category,
                   style: TextStyle(
                     fontSize: isMobile ? 13 : 14,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.white : AppColors.black,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected
+                        ? AppColors.primaryBlack
+                        : AppColors.white,
                   ),
                 ),
               ),
@@ -292,32 +292,27 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  Widget _buildFoodSection({
+    Widget _buildProductGrid({
     required BuildContext context,
-    required List<FoodItem> foods,
+    required List<ProductItem> products,
     required bool isMobile,
     required bool isTablet,
   }) {
-    if (foods.isEmpty) {
+    if (products.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.softBlack,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          border: Border.all(color: AppColors.charcoal),
         ),
-        child: Text(
-          'No available items found in this category yet.',
+        child: const Text(
+          'No products available in this category yet.',
           style: TextStyle(
-            fontSize: isMobile ? 14 : 15,
-            color: AppColors.greyText,
+            color: AppColors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
         ),
       );
@@ -330,13 +325,13 @@ class _MenuPageState extends State<MenuPage> {
             : 4;
 
     final double childAspectRatio = isMobile
-        ? 0.88
+        ? 0.86
         : isTablet
-            ? 0.80
-            : 0.72;
+            ? 0.70
+            : 0.63;
 
     return GridView.builder(
-      itemCount: foods.length,
+      itemCount: products.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -346,18 +341,17 @@ class _MenuPageState extends State<MenuPage> {
         childAspectRatio: childAspectRatio,
       ),
       itemBuilder: (context, index) {
-        final food = foods[index];
+        final product = products[index];
 
         return FoodCard(
-          food: food,
+          food: product,
           onAddToCart: () {
-            context.read<CartController>().addToCart(food);
+            context.read<CartController>().addToCart(product);
 
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${food.name} added to cart'),
-                duration: const Duration(milliseconds: 900),
+                content: Text('${product.name} added to cart'),
                 behavior: SnackBarBehavior.floating,
               ),
             );

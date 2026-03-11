@@ -1,13 +1,15 @@
 import 'food_item.dart';
 
 class CartItem {
-  final FoodItem food;
+  final ProductItem product;
   int quantity;
 
   CartItem({
-    required this.food,
+    required this.product,
     this.quantity = 1,
   });
 
-  double get totalPrice => food.price * quantity;
+  ProductItem get food => product;
+
+  double get totalPrice => product.price * quantity;
 }

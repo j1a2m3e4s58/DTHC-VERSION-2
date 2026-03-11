@@ -11,7 +11,8 @@ class CustomNavbar extends StatelessWidget {
   final VoidCallback? onSpecialPacksTap;
   final VoidCallback? onCartTap;
   final VoidCallback? onContactTap;
-  final VoidCallback? onTrackOrderTap;
+  final VoidCallback? onLookbookTap;
+  final VoidCallback? onDeliveryTap;
   final VoidCallback? onOrderNowTap;
   final VoidCallback? onAdminTap;
 
@@ -23,7 +24,8 @@ class CustomNavbar extends StatelessWidget {
     this.onSpecialPacksTap,
     this.onCartTap,
     this.onContactTap,
-    this.onTrackOrderTap,
+    this.onLookbookTap,
+    this.onDeliveryTap,
     this.onOrderNowTap,
     this.onAdminTap,
   });
@@ -34,13 +36,12 @@ class CustomNavbar extends StatelessWidget {
     final cartCount = context.watch<CartController>().totalItemsCount;
 
     final isMobile = width < 768;
-    final isTablet = width >= 768 && width < 1100;
-
+    final isTablet = width >= 768 && width < 1180;
     final cartTitle = cartCount > 0 ? 'Cart ($cartCount)' : 'Cart';
 
     return Container(
       width: double.infinity,
-      color: AppColors.softCream,
+      color: AppColors.primaryBlack,
       padding: EdgeInsets.fromLTRB(
         isMobile ? 12 : 22,
         18,
@@ -56,71 +57,121 @@ class CustomNavbar extends StatelessWidget {
               vertical: isMobile ? 12 : 14,
             ),
             decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.96),
+              color: AppColors.softBlack,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: const Color(0xFFD9E2DA),
-              ),
+              border: Border.all(color: AppColors.charcoal),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x12000000),
+                  color: Color(0x30000000),
                   blurRadius: 20,
                   offset: Offset(0, 8),
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: isMobile ? 1 : 3,
-                  child: _LogoSection(
-                    isMobile: isMobile,
-                    onTap: onHomeTap,
-                    onLongPress: onAdminTap,
-                  ),
-                ),
-                if (!isMobile) ...[
-                  Expanded(
-                    flex: isTablet ? 5 : 6,
-                    child: _DesktopNavLinks(
-                      activeItem: activeItem,
-                      cartTitle: cartTitle,
-                      onHomeTap: onHomeTap,
-                      onMenuTap: onMenuTap,
-                      onSpecialPacksTap: onSpecialPacksTap,
-                      onCartTap: onCartTap,
-                      onContactTap: onContactTap,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: _NavbarActions(
-                        isTablet: isTablet,
-                        onTrackOrderTap: onTrackOrderTap,
+            child: isMobile
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: _LogoSection(
+                          isMobile: true,
+                          onTap: onHomeTap,
+                          onLongPress: onAdminTap,
+                        ),
+                      ),
+                      _MobileMenuButton(
+                        cartTitle: cartTitle,
+                        activeItem: activeItem,
+                        onHomeTap: onHomeTap,
+                        onMenuTap: onMenuTap,
+                        onSpecialPacksTap: onSpecialPacksTap,
+                        onCartTap: onCartTap,
+                        onContactTap: onContactTap,
+                        onLookbookTap: onLookbookTap,
+                        onDeliveryTap: onDeliveryTap,
                         onOrderNowTap: onOrderNowTap,
                       ),
-                    ),
-                  ),
-                ] else ...[
-                  _MobileMenuButton(
-                    cartTitle: cartTitle,
+                    ],
+                  )
+                : _DesktopNavbarLayout(
+                    isTablet: isTablet,
                     activeItem: activeItem,
+                    cartTitle: cartTitle,
                     onHomeTap: onHomeTap,
                     onMenuTap: onMenuTap,
                     onSpecialPacksTap: onSpecialPacksTap,
                     onCartTap: onCartTap,
                     onContactTap: onContactTap,
-                    onTrackOrderTap: onTrackOrderTap,
+                    onLookbookTap: onLookbookTap,
+                    onDeliveryTap: onDeliveryTap,
                     onOrderNowTap: onOrderNowTap,
+                    onAdminTap: onAdminTap,
                   ),
-                ],
-              ],
-            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DesktopNavbarLayout extends StatelessWidget {
+  final bool isTablet;
+  final String activeItem;
+  final String cartTitle;
+  final VoidCallback? onHomeTap;
+  final VoidCallback? onMenuTap;
+  final VoidCallback? onSpecialPacksTap;
+  final VoidCallback? onCartTap;
+  final VoidCallback? onContactTap;
+  final VoidCallback? onLookbookTap;
+  final VoidCallback? onDeliveryTap;
+  final VoidCallback? onOrderNowTap;
+  final VoidCallback? onAdminTap;
+
+  const _DesktopNavbarLayout({
+    required this.isTablet,
+    required this.activeItem,
+    required this.cartTitle,
+    this.onHomeTap,
+    this.onMenuTap,
+    this.onSpecialPacksTap,
+    this.onCartTap,
+    this.onContactTap,
+    this.onLookbookTap,
+    this.onDeliveryTap,
+    this.onOrderNowTap,
+    this.onAdminTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _LogoSection(
+          isMobile: false,
+          onTap: onHomeTap,
+          onLongPress: onAdminTap,
+        ),
+        SizedBox(width: isTablet ? 14 : 22),
+        Expanded(
+          child: _DesktopNavLinks(
+            activeItem: activeItem,
+            cartTitle: cartTitle,
+            compact: isTablet,
+            onHomeTap: onHomeTap,
+            onMenuTap: onMenuTap,
+            onSpecialPacksTap: onSpecialPacksTap,
+            onCartTap: onCartTap,
+            onContactTap: onContactTap,
+            onLookbookTap: onLookbookTap,
+            onDeliveryTap: onDeliveryTap,
+          ),
+        ),
+        SizedBox(width: isTablet ? 12 : 18),
+        _NavbarActions(
+          isTablet: isTablet,
+          onOrderNowTap: onOrderNowTap,
+        ),
+      ],
     );
   }
 }
@@ -143,17 +194,18 @@ class _LogoSection extends StatelessWidget {
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(18),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             height: isMobile ? 48 : 52,
             width: isMobile ? 48 : 52,
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen,
+              color: AppColors.gold,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
-              Icons.restaurant,
-              color: AppColors.white,
+              Icons.shopping_bag_rounded,
+              color: AppColors.primaryBlack,
               size: 28,
             ),
           ),
@@ -161,19 +213,20 @@ class _LogoSection extends StatelessWidget {
           if (!isMobile)
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'SUPERFOODS',
+                  'DTHC',
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.darkGreen,
-                    letterSpacing: 0.2,
+                    color: AppColors.white,
+                    letterSpacing: 0.4,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Kitchen & Bakery',
+                  'Drip Too Hard Collections',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -191,62 +244,105 @@ class _LogoSection extends StatelessWidget {
 class _DesktopNavLinks extends StatelessWidget {
   final String activeItem;
   final String cartTitle;
+  final bool compact;
   final VoidCallback? onHomeTap;
   final VoidCallback? onMenuTap;
   final VoidCallback? onSpecialPacksTap;
   final VoidCallback? onCartTap;
   final VoidCallback? onContactTap;
+  final VoidCallback? onLookbookTap;
+  final VoidCallback? onDeliveryTap;
 
   const _DesktopNavLinks({
     required this.activeItem,
     required this.cartTitle,
+    required this.compact,
     this.onHomeTap,
     this.onMenuTap,
     this.onSpecialPacksTap,
     this.onCartTap,
     this.onContactTap,
+    this.onLookbookTap,
+    this.onDeliveryTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _NavButton(
-          title: 'Home',
-          icon: Icons.home_rounded,
-          active: activeItem == 'Home',
-          onTap: onHomeTap,
-        ),
-        const SizedBox(width: 8),
-        _NavButton(
-          title: 'Menu',
-          icon: Icons.restaurant_menu,
-          active: activeItem == 'Menu',
-          onTap: onMenuTap,
-        ),
-        const SizedBox(width: 8),
-        _NavButton(
-          title: 'Special Packs',
-          icon: Icons.local_offer_outlined,
-          active: activeItem == 'Special Packs',
-          onTap: onSpecialPacksTap,
-        ),
-        const SizedBox(width: 8),
-        _NavButton(
-          title: cartTitle,
-          icon: Icons.shopping_cart_outlined,
-          active: activeItem == 'Cart',
-          onTap: onCartTap,
-        ),
-        const SizedBox(width: 8),
-        _NavButton(
-          title: 'Contact',
-          icon: Icons.call_outlined,
-          active: activeItem == 'Contact',
-          onTap: onContactTap,
-        ),
-      ],
+    final gap = compact ? 6.0 : 8.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final navItems = [
+          _NavButton(
+            title: 'Home',
+            icon: Icons.home_rounded,
+            active: activeItem == 'Home',
+            compact: compact,
+            onTap: onHomeTap,
+          ),
+          _NavButton(
+            title: 'Shop',
+            icon: Icons.storefront_outlined,
+            active: activeItem == 'Shop' || activeItem == 'Menu',
+            compact: compact,
+            onTap: onMenuTap,
+          ),
+          _NavButton(
+            title: 'Collections',
+            icon: Icons.layers_outlined,
+            active: activeItem == 'Collections' || activeItem == 'Special Packs',
+            compact: compact,
+            onTap: onSpecialPacksTap,
+          ),
+          _NavButton(
+            title: 'Lookbook',
+            icon: Icons.photo_library_outlined,
+            active: activeItem == 'Lookbook',
+            compact: compact,
+            onTap: onLookbookTap,
+          ),
+          _NavButton(
+            title: 'Delivery',
+            icon: Icons.local_shipping_outlined,
+            active:
+                activeItem == 'Delivery' ||
+                activeItem == 'Payment & Delivery',
+            compact: compact,
+            onTap: onDeliveryTap,
+          ),
+          _NavButton(
+            title: cartTitle,
+            icon: Icons.shopping_cart_outlined,
+            active: activeItem == 'Cart',
+            compact: compact,
+            onTap: onCartTap,
+          ),
+          _NavButton(
+            title: 'Contact',
+            icon: Icons.call_outlined,
+            active: activeItem == 'Contact',
+            compact: compact,
+            onTap: onContactTap,
+          ),
+        ];
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int i = 0; i < navItems.length; i++) ...[
+                  navItems[i],
+                  if (i != navItems.length - 1) SizedBox(width: gap),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -255,45 +351,56 @@ class _NavButton extends StatelessWidget {
   final String title;
   final IconData icon;
   final bool active;
+  final bool compact;
   final VoidCallback? onTap;
 
   const _NavButton({
     required this.title,
     required this.icon,
     this.active = false,
+    this.compact = false,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = compact ? 10.0 : 14.0;
+    final verticalPadding = compact ? 10.0 : 11.0;
+    final fontSize = compact ? 14.0 : 15.0;
+    final iconSize = compact ? 15.0 : 16.0;
+    final spacing = compact ? 6.0 : 7.0;
+
     return Container(
       decoration: BoxDecoration(
-        color: active ? const Color(0xFFE9F5EC) : Colors.transparent,
+        color: active ? AppColors.gold : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
-        border: active ? Border.all(color: const Color(0xFFD8E8DC)) : null,
+        border: active ? Border.all(color: AppColors.gold) : null,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
-                size: 16,
-                color: active ? AppColors.primaryGreen : const Color(0xFF2F3747),
+                size: iconSize,
+                color: active ? AppColors.primaryBlack : AppColors.white,
               ),
-              const SizedBox(width: 7),
+              SizedBox(width: spacing),
               Text(
                 title,
+                overflow: TextOverflow.visible,
+                softWrap: false,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w700,
-                  color: active
-                      ? AppColors.primaryGreen
-                      : const Color(0xFF2F3747),
+                  color: active ? AppColors.primaryBlack : AppColors.white,
                 ),
               ),
             ],
@@ -306,59 +413,34 @@ class _NavButton extends StatelessWidget {
 
 class _NavbarActions extends StatelessWidget {
   final bool isTablet;
-  final VoidCallback? onTrackOrderTap;
   final VoidCallback? onOrderNowTap;
 
   const _NavbarActions({
     required this.isTablet,
-    this.onTrackOrderTap,
     this.onOrderNowTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        OutlinedButton(
-          onPressed: onTrackOrderTap,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.darkGreen,
-            side: const BorderSide(color: Color(0xFFD5DFD7)),
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 16 : 18,
-              vertical: 18,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
-          child: const Text(
-            'Track Order',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
+    return ElevatedButton(
+      onPressed: onOrderNowTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.gold,
+        foregroundColor: AppColors.primaryBlack,
+        elevation: 0,
+        minimumSize: Size(isTablet ? 120 : 132, 56),
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 18,
+          vertical: 18,
         ),
-        ElevatedButton(
-          onPressed: onOrderNowTap,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryGreen,
-            foregroundColor: AppColors.white,
-            elevation: 0,
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 16 : 18,
-              vertical: 18,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
-          child: const Text(
-            'Order Now',
-            style: TextStyle(fontWeight: FontWeight.w800),
-          ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
         ),
-      ],
+      ),
+      child: const Text(
+        'Shop Now',
+        style: TextStyle(fontWeight: FontWeight.w800),
+      ),
     );
   }
 }
@@ -371,7 +453,8 @@ class _MobileMenuButton extends StatelessWidget {
   final VoidCallback? onSpecialPacksTap;
   final VoidCallback? onCartTap;
   final VoidCallback? onContactTap;
-  final VoidCallback? onTrackOrderTap;
+  final VoidCallback? onLookbookTap;
+  final VoidCallback? onDeliveryTap;
   final VoidCallback? onOrderNowTap;
 
   const _MobileMenuButton({
@@ -382,7 +465,8 @@ class _MobileMenuButton extends StatelessWidget {
     this.onSpecialPacksTap,
     this.onCartTap,
     this.onContactTap,
-    this.onTrackOrderTap,
+    this.onLookbookTap,
+    this.onDeliveryTap,
     this.onOrderNowTap,
   });
 
@@ -395,23 +479,25 @@ class _MobileMenuButton extends StatelessWidget {
       padding: EdgeInsets.zero,
       icon: const Icon(
         Icons.menu_rounded,
-        color: AppColors.darkGreen,
+        color: AppColors.white,
         size: 28,
       ),
       onSelected: (value) {
         if (value == 'Home') {
           onHomeTap?.call();
-        } else if (value == 'Menu') {
+        } else if (value == 'Shop') {
           onMenuTap?.call();
-        } else if (value == 'Special Packs') {
+        } else if (value == 'Collections') {
           onSpecialPacksTap?.call();
+        } else if (value == 'Lookbook') {
+          onLookbookTap?.call();
+        } else if (value == 'Delivery') {
+          onDeliveryTap?.call();
         } else if (value == 'Cart') {
           onCartTap?.call();
         } else if (value == 'Contact') {
           onContactTap?.call();
-        } else if (value == 'Track Order') {
-          onTrackOrderTap?.call();
-        } else if (value == 'Order Now') {
+        } else if (value == 'Shop Now') {
           onOrderNowTap?.call();
         }
       },
@@ -420,14 +506,14 @@ class _MobileMenuButton extends StatelessWidget {
           enabled: false,
           padding: EdgeInsets.zero,
           child: Container(
-            width: 285,
+            width: 290,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.softBlack,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFE3E6E8)),
+              border: Border.all(color: AppColors.charcoal),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x18000000),
+                  color: Color(0x30000000),
                   blurRadius: 24,
                   offset: Offset(0, 10),
                 ),
@@ -437,7 +523,7 @@ class _MobileMenuButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const _MobileMenuHeader(),
-                const Divider(height: 1, color: Color(0xFFE7EAEC)),
+                const Divider(height: 1, color: AppColors.charcoal),
                 _MobileMenuAction(
                   title: 'Home',
                   icon: Icons.home_rounded,
@@ -445,16 +531,32 @@ class _MobileMenuButton extends StatelessWidget {
                   onTap: () => Navigator.pop(context, 'Home'),
                 ),
                 _MobileMenuAction(
-                  title: 'Menu',
-                  icon: Icons.restaurant_menu,
-                  active: activeItem == 'Menu',
-                  onTap: () => Navigator.pop(context, 'Menu'),
+                  title: 'Shop',
+                  icon: Icons.storefront_outlined,
+                  active: activeItem == 'Shop' || activeItem == 'Menu',
+                  onTap: () => Navigator.pop(context, 'Shop'),
                 ),
                 _MobileMenuAction(
-                  title: 'Special Packs',
-                  icon: Icons.local_offer_outlined,
-                  active: activeItem == 'Special Packs',
-                  onTap: () => Navigator.pop(context, 'Special Packs'),
+                  title: 'Collections',
+                  icon: Icons.layers_outlined,
+                  active:
+                      activeItem == 'Collections' ||
+                      activeItem == 'Special Packs',
+                  onTap: () => Navigator.pop(context, 'Collections'),
+                ),
+                _MobileMenuAction(
+                  title: 'Lookbook',
+                  icon: Icons.photo_library_outlined,
+                  active: activeItem == 'Lookbook',
+                  onTap: () => Navigator.pop(context, 'Lookbook'),
+                ),
+                _MobileMenuAction(
+                  title: 'Delivery',
+                  icon: Icons.local_shipping_outlined,
+                  active:
+                      activeItem == 'Delivery' ||
+                      activeItem == 'Payment & Delivery',
+                  onTap: () => Navigator.pop(context, 'Delivery'),
                 ),
                 _MobileMenuAction(
                   title: cartTitle,
@@ -469,14 +571,9 @@ class _MobileMenuButton extends StatelessWidget {
                   onTap: () => Navigator.pop(context, 'Contact'),
                 ),
                 _MobileMenuAction(
-                  title: 'Track Order',
-                  icon: Icons.route_outlined,
-                  onTap: () => Navigator.pop(context, 'Track Order'),
-                ),
-                _MobileMenuAction(
-                  title: 'Order Now',
+                  title: 'Shop Now',
                   icon: Icons.shopping_bag_outlined,
-                  onTap: () => Navigator.pop(context, 'Order Now'),
+                  onTap: () => Navigator.pop(context, 'Shop Now'),
                 ),
               ],
             ),
@@ -500,12 +597,12 @@ class _MobileMenuHeader extends StatelessWidget {
             height: 54,
             width: 54,
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen,
+              color: AppColors.gold,
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.restaurant,
-              color: Colors.white,
+              Icons.shopping_bag_rounded,
+              color: AppColors.primaryBlack,
               size: 30,
             ),
           ),
@@ -515,17 +612,17 @@ class _MobileMenuHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SUPERFOODS',
+                  'DTHC',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.darkGreen,
+                    color: AppColors.white,
                     letterSpacing: 0.2,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Kitchen & Bakery',
+                  'Drip Too Hard Collections',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -566,7 +663,7 @@ class _MobileMenuAction extends StatelessWidget {
             Icon(
               icon,
               size: 22,
-              color: active ? AppColors.primaryGreen : const Color(0xFF243041),
+              color: active ? AppColors.gold : AppColors.white,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -575,9 +672,7 @@ class _MobileMenuAction extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: active
-                      ? AppColors.primaryGreen
-                      : const Color(0xFF243041),
+                  color: active ? AppColors.gold : AppColors.white,
                 ),
               ),
             ),

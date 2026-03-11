@@ -11,11 +11,11 @@ class OrderBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 768;
-    final foods = StoreController().getAvailableFoods();
+    final products = StoreController().getAvailableProducts();
 
     return Container(
       width: double.infinity,
-      color: AppColors.softCream,
+      color: AppColors.softBlack,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 16 : 32,
         vertical: isMobile ? 28 : 42,
@@ -27,20 +27,20 @@ class OrderBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Our Day Specials',
+                'Featured Collections',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.darkGreen,
+                  color: AppColors.white,
                 ),
               ),
               const SizedBox(height: 10),
               const Text(
-                'Inspired by your flyer design, these pack offers make the homepage colorful, attractive, and ready for real customers.',
+                'Highlight your strongest DTHC drops with bold visuals and premium streetwear presentation.',
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.6,
-                  color: AppColors.greyText,
+                  color: Color(0xFFBDBDBD),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -58,36 +58,36 @@ class OrderBanner extends StatelessWidget {
                 childAspectRatio: width < 700 ? 1.05 : 1.45,
                 children: [
                   _SpecialCard(
-                    title: 'Joy Pack',
-                    price: 'GHC 100',
+                    title: 'Essentials Drop',
+                    price: 'From GHS 85',
                     description:
-                        '1 pack jollof or fried rice with grilled chicken, 1 fresh juice, 1 meat pie or spring roll, popcorn and complimentary gifts.',
-                    backgroundColor: AppColors.primaryGreen,
-                    thumbnailFood: foods.isNotEmpty ? foods[0] : null,
+                        'Clean everyday pieces designed for simple premium fits, easy layering, and all-day drip.',
+                    backgroundColor: AppColors.primaryBlack,
+                    thumbnailProduct: products.isNotEmpty ? products[0] : null,
                   ),
                   _SpecialCard(
-                    title: 'Friend’s Pack',
-                    price: 'GHC 250',
+                    title: 'Street Kings',
+                    price: 'From GHS 140',
                     description:
-                        '2 packs rice with grilled chicken, 4 fresh juices, 4 meat pies, 8 spring rolls, 4 popcorn and complimentary gifts.',
-                    backgroundColor: AppColors.deepOrange,
-                    thumbnailFood: foods.length > 1 ? foods[1] : null,
+                        'Bold statement pieces made for standout styling, confident looks, and attention-grabbing streetwear.',
+                    backgroundColor: AppColors.charcoal,
+                    thumbnailProduct: products.length > 1 ? products[1] : null,
                   ),
                   _SpecialCard(
-                    title: 'Happy Snack Pack',
-                    price: 'GHC 55',
+                    title: 'Urban Motion',
+                    price: 'From GHS 295',
                     description:
-                        'Fresh juice, meat pie, spring rolls, popcorn and complimentary gifts for quick enjoyment and light hunger.',
-                    backgroundColor: AppColors.darkGreen,
-                    thumbnailFood: foods.length > 2 ? foods[2] : null,
+                        'Sneaker-led collection focused on movement, comfort, and polished city-ready fashion.',
+                    backgroundColor: AppColors.primaryBlack,
+                    thumbnailProduct: products.length > 2 ? products[2] : null,
                   ),
                   _SpecialCard(
-                    title: 'Teacher’s Love Pack',
-                    price: 'GHC 120',
+                    title: 'Luxury Street',
+                    price: 'From GHS 95',
                     description:
-                        '1 pack jollof or fried rice with grilled chicken, juice, meat pie or sausage roll and complimentary gifts.',
-                    backgroundColor: AppColors.warmBrown,
-                    thumbnailFood: foods.length > 3 ? foods[3] : null,
+                        'Accessories and elevated fashion essentials with a sharper premium edge.',
+                    backgroundColor: AppColors.charcoal,
+                    thumbnailProduct: products.length > 3 ? products[3] : null,
                   ),
                 ],
               ),
@@ -104,14 +104,14 @@ class _SpecialCard extends StatelessWidget {
   final String price;
   final String description;
   final Color backgroundColor;
-  final FoodItem? thumbnailFood;
+  final ProductItem? thumbnailProduct;
 
   const _SpecialCard({
     required this.title,
     required this.price,
     required this.description,
     required this.backgroundColor,
-    required this.thumbnailFood,
+    required this.thumbnailProduct,
   });
 
   @override
@@ -124,6 +124,7 @@ class _SpecialCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.charcoal),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1A000000),
@@ -148,7 +149,7 @@ class _SpecialCard extends StatelessWidget {
                 Text(
                   description,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: Color(0xFFDDDDDD),
                     height: 1.5,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -160,7 +161,7 @@ class _SpecialCard extends StatelessWidget {
                     _PriceBadge(price: price),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: _FoodThumb(food: thumbnailFood),
+                      child: _ProductThumb(product: thumbnailProduct),
                     ),
                   ],
                 ),
@@ -168,8 +169,8 @@ class _SpecialCard extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentGold,
-                    foregroundColor: AppColors.black,
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.primaryBlack,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
@@ -180,7 +181,7 @@ class _SpecialCard extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    'Order Pack',
+                    'Shop Collection',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -205,7 +206,7 @@ class _SpecialCard extends StatelessWidget {
                       Text(
                         description,
                         style: const TextStyle(
-                          color: AppColors.white,
+                          color: Color(0xFFDDDDDD),
                           height: 1.5,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -215,8 +216,8 @@ class _SpecialCard extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentGold,
-                          foregroundColor: AppColors.black,
+                          backgroundColor: AppColors.gold,
+                          foregroundColor: AppColors.primaryBlack,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 18,
@@ -227,7 +228,7 @@ class _SpecialCard extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          'Order Pack',
+                          'Shop Collection',
                           style: TextStyle(fontWeight: FontWeight.w800),
                         ),
                       ),
@@ -242,7 +243,7 @@ class _SpecialCard extends StatelessWidget {
                     children: [
                       _PriceBadge(price: price),
                       const SizedBox(height: 18),
-                      _FoodThumb(food: thumbnailFood),
+                      _ProductThumb(product: thumbnailProduct),
                     ],
                   ),
                 ),
@@ -267,27 +268,27 @@ class _PriceBadge extends StatelessWidget {
         vertical: 16,
       ),
       decoration: BoxDecoration(
-        color: AppColors.accentGold,
+        color: AppColors.gold,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
         price,
         textAlign: TextAlign.center,
         style: const TextStyle(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.w900,
-          color: AppColors.white,
+          color: AppColors.primaryBlack,
         ),
       ),
     );
   }
 }
 
-class _FoodThumb extends StatelessWidget {
-  final FoodItem? food;
+class _ProductThumb extends StatelessWidget {
+  final ProductItem? product;
 
-  const _FoodThumb({
-    required this.food,
+  const _ProductThumb({
+    required this.product,
   });
 
   @override
@@ -296,22 +297,22 @@ class _FoodThumb extends StatelessWidget {
       height: 100,
       width: 100,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.15),
+        color: AppColors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(22),
       ),
       clipBehavior: Clip.antiAlias,
-      child: food == null || food!.imageUrl.trim().isEmpty
+      child: product == null || product!.imageUrl.trim().isEmpty
           ? const Icon(
-              Icons.fastfood,
+              Icons.shopping_bag_outlined,
               size: 42,
               color: AppColors.white,
             )
           : Image.network(
-              food!.imageUrl,
+              product!.imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return const Icon(
-                  Icons.fastfood,
+                  Icons.shopping_bag_outlined,
                   size: 42,
                   color: AppColors.white,
                 );
