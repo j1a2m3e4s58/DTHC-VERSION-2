@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
 import '../data/order_controller.dart';
@@ -25,16 +26,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _isSubmitting = false;
   String _selectedPaymentMethod = 'Mobile Money';
 
+  static const String _momoNumber = '0534206256';
+  static const String _accountName = 'Deborah Osardu';
+
   static const List<_PaymentMethodOption> _paymentOptions = [
     _PaymentMethodOption(
       title: 'Mobile Money',
-      subtitle: 'Fast and convenient for Ghana customers.',
+      subtitle:
+          'Place order now and pay to the DTHC MoMo number using your order reference.',
       icon: Icons.phone_android_rounded,
     ),
     _PaymentMethodOption(
-      title: 'Card Payment',
-      subtitle: 'Use a supported debit or bank card.',
-      icon: Icons.credit_card_rounded,
+      title: 'Bank Transfer',
+      subtitle:
+          'Place order now and complete payment with the provided account details after confirmation.',
+      icon: Icons.account_balance_rounded,
     ),
     _PaymentMethodOption(
       title: 'Pay on Delivery',
@@ -54,9 +60,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   String _generateTrackingCode() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final suffix =
-        timestamp.length >= 6 ? timestamp.substring(timestamp.length - 6) : timestamp;
+    final suffix = timestamp.length >= 6
+        ? timestamp.substring(timestamp.length - 6)
+        : timestamp;
     return 'DTHC-$suffix';
+  }
+
+  double _resolveDeliveryFee(CartController cartController) {
+    final estimated = cartController.estimatedTotal - cartController.subtotal;
+    if (estimated < 0) return 0;
+    return estimated;
   }
 
   Future<void> _placeOrder() async {
@@ -92,6 +105,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }).toList();
 
       final trackingCode = _generateTrackingCode();
+      final deliveryFee = _resolveDeliveryFee(cartController);
 
       final order = CustomerOrder(
         id: '',
@@ -101,7 +115,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         note: noteController.text.trim(),
         items: orderItems,
         subtotal: cartController.subtotal,
-        deliveryFee: 0,
+        deliveryFee: deliveryFee,
         total: cartController.estimatedTotal,
         createdAt: DateTime.now(),
         paymentMethod: _selectedPaymentMethod,
@@ -116,79 +130,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
       cartController.clearCart();
 
-      showDialog(
+      await showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            backgroundColor: AppColors.softBlack,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-            ),
-            title: const Text(
-              'Order placed',
-              style: TextStyle(
-                color: AppColors.white,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your order has been placed successfully. DTHC will contact you to confirm delivery details and final delivery cost.',
-                  style: TextStyle(
-                    color: Color(0xFFBDBDBD),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlack,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.charcoal),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Payment Method: $_selectedPaymentMethod',
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tracking Code: $trackingCode',
-                        style: const TextStyle(
-                          color: AppColors.gold,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  'OK',
-                  style: TextStyle(color: AppColors.gold),
-                ),
-              ),
-            ],
+          return _OrderPlacedDialog(
+            paymentMethod: _selectedPaymentMethod,
+            trackingCode: trackingCode,
+            totalAmount: order.total,
+            momoNumber: _momoNumber,
+            accountName: _accountName,
           );
         },
       );
+
+      if (!mounted) return;
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
 
@@ -250,6 +206,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             const SizedBox(height: 18),
                             _buildPaymentMethodCard(isMobile: true),
                             const SizedBox(height: 18),
+                            _buildPaymentInstructionCard(cartController, true),
+                            const SizedBox(height: 18),
                             _buildOrderSummaryCard(cartController, true),
                           ],
                         )
@@ -265,6 +223,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   _buildCustomerFormCard(isMobile: false),
                                   const SizedBox(height: 20),
                                   _buildPaymentMethodCard(isMobile: false),
+                                  const SizedBox(height: 20),
+                                  _buildPaymentInstructionCard(
+                                    cartController,
+                                    false,
+                                  ),
                                 ],
                               ),
                             ),
@@ -306,7 +269,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Fill in your details clearly so DTHC can confirm your order, delivery location, and final delivery cost.',
+            'Fill in your details clearly so DTHC can confirm your order, delivery location, payment path, and final dispatch plan.',
             style: TextStyle(
               fontSize: isMobile ? 13.5 : 15,
               height: 1.6,
@@ -502,6 +465,173 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  Widget _buildPaymentInstructionCard(
+    CartController cartController,
+    bool isMobile,
+  ) {
+    final total = cartController.estimatedTotal;
+
+    String title;
+    String subtitle;
+    IconData icon;
+    List<Widget> content;
+
+    if (_selectedPaymentMethod == 'Mobile Money') {
+      title = 'Mobile Money Instructions';
+      subtitle =
+          'After placing the order, send the exact amount to the DTHC MoMo number below and use your tracking code as the payment reference.';
+      icon = Icons.phone_android_rounded;
+      content = [
+        _buildInstructionRow('MoMo Number', _momoNumber),
+        const SizedBox(height: 10),
+        _buildInstructionRow('Name', _accountName),
+        const SizedBox(height: 10),
+        _buildInstructionRow(
+          'Amount',
+          'GHS ${total.toStringAsFixed(2)}',
+          highlight: true,
+        ),
+        const SizedBox(height: 10),
+        const _InstructionNote(
+          text:
+              'Reference: your tracking code will be shown after placing the order.',
+        ),
+      ];
+    } else if (_selectedPaymentMethod == 'Bank Transfer') {
+      title = 'Bank Transfer Instructions';
+      subtitle =
+          'Place the order first, then DTHC can confirm transfer details and expected payment reference before dispatch.';
+      icon = Icons.account_balance_rounded;
+      content = const [
+        _InstructionNote(
+          text:
+              'This option is for manual confirmation. DTHC will contact you with the final transfer steps after the order is placed.',
+        ),
+      ];
+    } else {
+      title = 'Pay on Delivery Notes';
+      subtitle =
+          'This option is only available where DTHC confirms delivery route, order value, and dispatch conditions first.';
+      icon = Icons.local_shipping_outlined;
+      content = const [
+        _InstructionNote(
+          text:
+              'Pay on delivery is not guaranteed for every location. DTHC will review the address and confirm availability before dispatch.',
+        ),
+      ];
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 22),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.charcoal),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primaryBlack,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        fontWeight: FontWeight.w500,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          ...content,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructionRow(
+    String label,
+    String value, {
+    bool highlight = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: highlight ? AppColors.gold : AppColors.charcoal,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.greyText,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: highlight ? AppColors.gold : AppColors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildField({
     required TextEditingController controller,
     required String label,
@@ -657,8 +787,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
           const SizedBox(height: 10),
           _summaryAmountRow('Subtotal', cartController.subtotal),
           const SizedBox(height: 10),
-          _summaryTextRow('Delivery', cartController.deliveryFeeLabel),
-          const SizedBox(height: 8),
+          _summaryAmountRow('Delivery Fee', _resolveDeliveryFee(cartController)),
+          const SizedBox(height: 10),
+          _summaryAmountRow(
+            'Estimated Total',
+            cartController.estimatedTotal,
+            isBold: true,
+          ),
+          const SizedBox(height: 10),
           Text(
             cartController.deliveryNote,
             style: const TextStyle(
@@ -667,12 +803,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
               color: Color(0xFFBDBDBD),
               fontWeight: FontWeight.w500,
             ),
-          ),
-          const SizedBox(height: 12),
-          _summaryAmountRow(
-            'Estimated Total',
-            cartController.estimatedTotal,
-            isBold: true,
           ),
           const SizedBox(height: 22),
           SizedBox(
@@ -696,9 +826,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         color: AppColors.primaryBlack,
                       ),
                     )
-                  : const Text(
-                      'Place Order',
-                      style: TextStyle(
+                  : Text(
+                      _selectedPaymentMethod == 'Pay on Delivery'
+                          ? 'Place Order'
+                          : 'Place Order & View Payment Instructions',
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -762,6 +894,338 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _InstructionNote extends StatelessWidget {
+  final String text;
+
+  const _InstructionNote({
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFFBDBDBD),
+          fontSize: 13,
+          height: 1.55,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderPlacedDialog extends StatelessWidget {
+  final String paymentMethod;
+  final String trackingCode;
+  final double totalAmount;
+  final String momoNumber;
+  final String accountName;
+
+  const _OrderPlacedDialog({
+    required this.paymentMethod,
+    required this.trackingCode,
+    required this.totalAmount,
+    required this.momoNumber,
+    required this.accountName,
+  });
+
+  void _copy(BuildContext context, String value, String label) {
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label copied'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _openWhatsApp(BuildContext context) async {
+    const whatsappNumber = '233534206256';
+
+    final message = '''
+Hello DTHC, I have placed an order.
+
+Payment Method: $paymentMethod
+Tracking Code: $trackingCode
+Amount: GHS ${totalAmount.toStringAsFixed(2)}
+
+I have made payment / I am about to complete payment.
+''';
+
+    final encodedMessage = Uri.encodeComponent(message);
+    final uri = Uri.parse('https://wa.me/$whatsappNumber?text=$encodedMessage');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open WhatsApp.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 700;
+
+    return AlertDialog(
+      backgroundColor: AppColors.softBlack,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+      ),
+      title: const Text(
+        'Order placed',
+        style: TextStyle(
+          color: AppColors.white,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      content: SizedBox(
+        width: isMobile ? double.maxFinite : 460,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your order has been placed successfully. DTHC will review the order and use the details below for payment confirmation and delivery follow-up.',
+                style: TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlack,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.charcoal),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Method: $paymentMethod',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tracking Code: $trackingCode',
+                      style: const TextStyle(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Amount: GHS ${totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _CopyChip(
+                    label: 'Copy Tracking Code',
+                    onTap: () => _copy(context, trackingCode, 'Tracking code'),
+                  ),
+                  _CopyChip(
+                    label: 'Copy Amount',
+                    onTap: () => _copy(
+                      context,
+                      totalAmount.toStringAsFixed(2),
+                      'Amount',
+                    ),
+                  ),
+                ],
+              ),
+              if (paymentMethod == 'Mobile Money') ...[
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlack,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.gold),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Mobile Money Payment Details',
+                        style: TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'MoMo Number: $momoNumber',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Name: $accountName',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Use this reference: $trackingCode',
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          _CopyChip(
+                            label: 'Copy MoMo Number',
+                            onTap: () =>
+                                _copy(context, momoNumber, 'MoMo number'),
+                          ),
+                          _CopyChip(
+                            label: 'Copy Name',
+                            onTap: () =>
+                                _copy(context, accountName, 'Account name'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (paymentMethod == 'Bank Transfer') ...[
+                const SizedBox(height: 14),
+                const _InstructionNote(
+                  text:
+                      'DTHC will contact you with the transfer details and confirmation steps for this order.',
+                ),
+              ] else ...[
+                const SizedBox(height: 14),
+                const _InstructionNote(
+                  text:
+                      'DTHC will confirm whether pay on delivery is available for your location before dispatch.',
+                ),
+              ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openWhatsApp(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.primaryBlack,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_outlined),
+                  label: const Text(
+                    'Send Payment Update on WhatsApp',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'OK',
+            style: TextStyle(color: AppColors.gold),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CopyChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _CopyChip({
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlack,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.charcoal),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.copy_rounded,
+              size: 16,
+              color: AppColors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

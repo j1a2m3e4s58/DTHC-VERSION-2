@@ -17,7 +17,67 @@ class AdminDashboardPage extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final bool isMobile = width < 700;
     final bool isTablet = width >= 700 && width < 1100;
-    final int newOrdersCount = context.watch<OrderController>().newOrdersCount;
+    final orderController = context.watch<OrderController>();
+
+    final int newOrdersCount = orderController.newOrdersCount;
+    final int totalOrders = orderController.totalOrders;
+    final int pendingOrdersCount = orderController.pendingOrdersCount;
+    final int deliveredOrdersCount = orderController.deliveredOrdersCount;
+    final int paidOrdersCount = orderController.paidOrdersCount;
+    final int unpaidOrdersCount = orderController.unpaidOrdersCount;
+    final int ordersToday = orderController.ordersToday;
+    final int ordersThisWeek = orderController.ordersThisWeek;
+    final int ordersThisMonth = orderController.ordersThisMonth;
+    final double totalRevenue = orderController.totalRevenue;
+
+    final analytics = [
+      _DashboardMetricData(
+        title: 'Total Revenue',
+        value: 'GHS ${totalRevenue.toStringAsFixed(2)}',
+        icon: Icons.payments_rounded,
+        highlight: true,
+      ),
+      _DashboardMetricData(
+        title: 'Total Orders',
+        value: '$totalOrders',
+        icon: Icons.receipt_long_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'Orders Today',
+        value: '$ordersToday',
+        icon: Icons.today_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'This Week',
+        value: '$ordersThisWeek',
+        icon: Icons.date_range_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'This Month',
+        value: '$ordersThisMonth',
+        icon: Icons.calendar_month_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'Pending Orders',
+        value: '$pendingOrdersCount',
+        icon: Icons.pending_actions_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'Delivered Orders',
+        value: '$deliveredOrdersCount',
+        icon: Icons.local_shipping_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'Paid Orders',
+        value: '$paidOrdersCount',
+        icon: Icons.check_circle_rounded,
+      ),
+      _DashboardMetricData(
+        title: 'Unpaid Orders',
+        value: '$unpaidOrdersCount',
+        icon: Icons.error_outline_rounded,
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -125,6 +185,14 @@ class AdminDashboardPage extends StatelessWidget {
                 _DashboardHero(
                   isMobile: isMobile,
                   newOrdersCount: newOrdersCount,
+                  totalRevenue: totalRevenue,
+                  totalOrders: totalOrders,
+                ),
+                const SizedBox(height: 24),
+                _AnalyticsSection(
+                  isMobile: isMobile,
+                  isTablet: isTablet,
+                  analytics: analytics,
                 ),
                 const SizedBox(height: 24),
                 if (isMobile)
@@ -178,7 +246,7 @@ class AdminDashboardPage extends StatelessWidget {
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: isTablet ? 2 : 2,
+                    crossAxisCount: 2,
                     crossAxisSpacing: 18,
                     mainAxisSpacing: 18,
                     childAspectRatio: isTablet ? 1.18 : 1.42,
@@ -248,9 +316,6 @@ class AdminDashboardPage extends StatelessWidget {
                         newOrdersCount > 0 ? '$newOrdersCount New' : 'Live',
                   ),
                 ],
-                if (!isMobile) ...[
-                  const SizedBox(height: 0),
-                ],
               ],
             ),
           ),
@@ -260,32 +325,182 @@ class AdminDashboardPage extends StatelessWidget {
   }
 }
 
+class _AnalyticsSection extends StatelessWidget {
+  final bool isMobile;
+  final bool isTablet;
+  final List<_DashboardMetricData> analytics;
+
+  const _AnalyticsSection({
+    required this.isMobile,
+    required this.isTablet,
+    required this.analytics,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final int crossAxisCount = isMobile ? 2 : (isTablet ? 3 : 4);
+    final double childAspectRatio = isMobile ? 1.08 : (isTablet ? 1.18 : 1.28);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 22),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.charcoal),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(
+            title: 'Store Analytics',
+            subtitle: 'Live order, payment, and revenue performance overview.',
+          ),
+          const SizedBox(height: 18),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: analytics.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: childAspectRatio,
+            ),
+            itemBuilder: (context, index) {
+              return _DashboardMetricCard(data: analytics[index]);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardMetricData {
+  final String title;
+  final String value;
+  final IconData icon;
+  final bool highlight;
+
+  const _DashboardMetricData({
+    required this.title,
+    required this.value,
+    required this.icon,
+    this.highlight = false,
+  });
+}
+
+class _DashboardMetricCard extends StatelessWidget {
+  final _DashboardMetricData data;
+
+  const _DashboardMetricCard({
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 700;
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 14 : 16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: data.highlight ? AppColors.gold : AppColors.charcoal,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: isMobile ? 40 : 44,
+            width: isMobile ? 40 : 44,
+            decoration: BoxDecoration(
+              color: data.highlight
+                  ? AppColors.gold.withValues(alpha: 0.14)
+                  : AppColors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: data.highlight
+                    ? AppColors.gold.withValues(alpha: 0.28)
+                    : AppColors.charcoal,
+              ),
+            ),
+            child: Icon(
+              data.icon,
+              color: data.highlight ? AppColors.gold : AppColors.white,
+              size: isMobile ? 20 : 22,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            data.value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: data.highlight ? AppColors.gold : AppColors.white,
+              fontSize: isMobile ? 18 : 20,
+              fontWeight: FontWeight.w900,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            data.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DashboardHero extends StatelessWidget {
   final bool isMobile;
   final int newOrdersCount;
+  final double totalRevenue;
+  final int totalOrders;
 
   const _DashboardHero({
     required this.isMobile,
     required this.newOrdersCount,
+    required this.totalRevenue,
+    required this.totalOrders,
   });
 
   @override
   Widget build(BuildContext context) {
     final stats = [
       _HeroStatData(
-        label: 'Brand',
-        value: 'DTHC',
-        icon: Icons.workspace_premium_rounded,
+        label: 'Revenue',
+        value: 'GHS ${totalRevenue.toStringAsFixed(2)}',
+        icon: Icons.payments_rounded,
       ),
       _HeroStatData(
         label: 'Orders',
-        value: newOrdersCount > 0 ? '$newOrdersCount new' : 'Up to date',
+        value: '$totalOrders total',
         icon: Icons.receipt_long_rounded,
       ),
-      const _HeroStatData(
-        label: 'Mode',
-        value: 'Admin',
-        icon: Icons.admin_panel_settings_outlined,
+      _HeroStatData(
+        label: 'Alerts',
+        value: newOrdersCount > 0 ? '$newOrdersCount new' : 'Up to date',
+        icon: Icons.notifications_active_outlined,
       ),
     ];
 
@@ -375,7 +590,7 @@ class _HeroTopText extends StatelessWidget {
         ),
         SizedBox(height: 12),
         Text(
-          'Update products, track orders, manage collections, and control editorial storefront content with a fashion-brand admin experience that matches the customer-facing site.',
+          'Track revenue, monitor order activity, manage products, control collections, and oversee the full storefront from one premium admin experience.',
           style: TextStyle(
             color: Color(0xFFBDBDBD),
             fontSize: 15,
@@ -511,6 +726,43 @@ class _HeroStatCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SectionTitle({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: Color(0xFFBDBDBD),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            height: 1.55,
+          ),
+        ),
+      ],
     );
   }
 }

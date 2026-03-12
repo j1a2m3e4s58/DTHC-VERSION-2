@@ -13,6 +13,11 @@ class CustomerOrder {
   final DateTime createdAt;
   final String paymentMethod;
   final String trackingCode;
+
+  final String paymentStatus;
+  final String paymentProofStatus;
+  final bool paymentUpdateSent;
+
   bool isNew;
   bool isDelivered;
 
@@ -29,6 +34,9 @@ class CustomerOrder {
     required this.createdAt,
     this.paymentMethod = 'Mobile Money',
     this.trackingCode = '',
+    this.paymentStatus = 'Pending',
+    this.paymentProofStatus = 'Not Sent',
+    this.paymentUpdateSent = false,
     this.isNew = true,
     this.isDelivered = false,
   });
@@ -47,6 +55,9 @@ class CustomerOrder {
       'createdAt': createdAt.toIso8601String(),
       'paymentMethod': paymentMethod,
       'trackingCode': trackingCode,
+      'paymentStatus': paymentStatus,
+      'paymentProofStatus': paymentProofStatus,
+      'paymentUpdateSent': paymentUpdateSent,
       'isNew': isNew,
       'isDelivered': isDelivered,
     };
@@ -76,15 +87,84 @@ class CustomerOrder {
       address: (map['address'] ?? '').toString(),
       note: (map['note'] ?? '').toString(),
       items: parsedItems,
-      subtotal: (map['subtotal'] ?? 0).toDouble(),
-      deliveryFee: (map['deliveryFee'] ?? 0).toDouble(),
-      total: (map['total'] ?? 0).toDouble(),
-      createdAt: DateTime.tryParse((map['createdAt'] ?? '').toString()) ??
+      subtotal: ((map['subtotal'] ?? 0) as num).toDouble(),
+      deliveryFee: ((map['deliveryFee'] ?? 0) as num).toDouble(),
+      total: ((map['total'] ?? 0) as num).toDouble(),
+      createdAt:
+          DateTime.tryParse((map['createdAt'] ?? '').toString()) ??
           DateTime.now(),
       paymentMethod: (map['paymentMethod'] ?? 'Mobile Money').toString(),
       trackingCode: (map['trackingCode'] ?? '').toString(),
-      isNew: (map['isNew'] ?? true) as bool,
-      isDelivered: (map['isDelivered'] ?? false) as bool,
+      paymentStatus: (map['paymentStatus'] ?? 'Pending').toString(),
+      paymentProofStatus: (map['paymentProofStatus'] ?? 'Not Sent').toString(),
+      paymentUpdateSent: (map['paymentUpdateSent'] ?? false) == true,
+      isNew: (map['isNew'] ?? true) == true,
+      isDelivered: (map['isDelivered'] ?? false) == true,
     );
+  }
+
+    CustomerOrder copyWith({
+    String? id,
+    String? customerName,
+    String? phoneNumber,
+    String? address,
+    String? note,
+    List<OrderItem>? items,
+    double? subtotal,
+    double? deliveryFee,
+    double? total,
+    DateTime? createdAt,
+    String? paymentMethod,
+    String? trackingCode,
+    String? paymentStatus,
+    String? paymentProofStatus,
+    bool? paymentUpdateSent,
+    bool? isNew,
+    bool? isDelivered,
+  }) {
+    return CustomerOrder(
+      id: id ?? this.id,
+      customerName: customerName ?? this.customerName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      address: address ?? this.address,
+      note: note ?? this.note,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      total: total ?? this.total,
+      createdAt: createdAt ?? this.createdAt,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      trackingCode: trackingCode ?? this.trackingCode,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentProofStatus: paymentProofStatus ?? this.paymentProofStatus,
+      paymentUpdateSent: paymentUpdateSent ?? this.paymentUpdateSent,
+      isNew: isNew ?? this.isNew,
+      isDelivered: isDelivered ?? this.isDelivered,
+    );
+  }
+
+  String generateWhatsAppMessage() {
+    final buffer = StringBuffer();
+
+    buffer.writeln('NEW DTHC ORDER');
+    buffer.writeln('');
+    buffer.writeln('Customer: $customerName');
+    buffer.writeln('Phone: $phoneNumber');
+    buffer.writeln('Address: $address');
+    buffer.writeln('');
+
+    buffer.writeln('Items:');
+    for (final item in items) {
+      buffer.writeln('${item.quantity} × ${item.name}');
+    }
+
+    buffer.writeln('');
+    buffer.writeln('Total: GHS ${total.toStringAsFixed(2)}');
+
+    if (trackingCode.isNotEmpty) {
+      buffer.writeln('Tracking Code: $trackingCode');
+    }
+
+    return buffer.toString();
   }
 }

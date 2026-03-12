@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_colors.dart';
 import '../../data/order_controller.dart';
 import '../../models/customer_order.dart';
 import '../../models/order_item.dart';
+
 
 class AdminOrdersPage extends StatefulWidget {
   const AdminOrdersPage({super.key});
@@ -35,12 +36,18 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         allOrders.where((order) => order.isDelivered).length;
     final pendingCount =
         allOrders.where((order) => !order.isDelivered).length;
+    final paidCount =
+        allOrders.where((order) => order.paymentStatus == 'Paid').length;
+    final unpaidCount =
+        allOrders.where((order) => order.paymentStatus != 'Paid').length;
 
-    final filteredOrders = selectedFilter == 'Pending'
-        ? allOrders.where((order) => !order.isDelivered).toList()
-        : selectedFilter == 'Delivered'
-            ? allOrders.where((order) => order.isDelivered).toList()
-            : allOrders;
+    final filteredOrders = switch (selectedFilter) {
+      'Pending' => allOrders.where((order) => !order.isDelivered).toList(),
+      'Delivered' => allOrders.where((order) => order.isDelivered).toList(),
+      'Paid' => allOrders.where((order) => order.paymentStatus == 'Paid').toList(),
+      'Unpaid' => allOrders.where((order) => order.paymentStatus != 'Paid').toList(),
+      _ => allOrders,
+    };
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -88,12 +95,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         totalCount: allOrders.length,
                         pendingCount: pendingCount,
                         deliveredCount: deliveredCount,
+                        paidCount: paidCount,
+                        unpaidCount: unpaidCount,
                       ),
                       const SizedBox(height: 20),
                       _buildFilterTabs(
                         totalCount: allOrders.length,
                         pendingCount: pendingCount,
                         deliveredCount: deliveredCount,
+                        paidCount: paidCount,
+                        unpaidCount: unpaidCount,
                       ),
                       const SizedBox(height: 20),
                       if (filteredOrders.isEmpty)
@@ -130,6 +141,8 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     required int totalCount,
     required int pendingCount,
     required int deliveredCount,
+    required int paidCount,
+    required int unpaidCount,
   }) {
     return Wrap(
       spacing: 12,
@@ -165,6 +178,26 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             });
           },
         ),
+        _FilterChipButton(
+          label: 'Paid',
+          count: paidCount,
+          selected: selectedFilter == 'Paid',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Paid';
+            });
+          },
+        ),
+        _FilterChipButton(
+          label: 'Unpaid',
+          count: unpaidCount,
+          selected: selectedFilter == 'Unpaid',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Unpaid';
+            });
+          },
+        ),
       ],
     );
   }
@@ -174,55 +207,81 @@ class _OrdersTopSummary extends StatelessWidget {
   final int totalCount;
   final int pendingCount;
   final int deliveredCount;
+  final int paidCount;
+  final int unpaidCount;
 
   const _OrdersTopSummary({
     required this.totalCount,
     required this.pendingCount,
     required this.deliveredCount,
+    required this.paidCount,
+    required this.unpaidCount,
   });
 
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 700;
 
+    final cards = [
+      _TopMetricCard(
+        title: 'Total Orders',
+        value: '$totalCount',
+        icon: Icons.receipt_long,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Pending',
+        value: '$pendingCount',
+        icon: Icons.access_time,
+        iconColor: AppColors.white,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Delivered',
+        value: '$deliveredCount',
+        icon: Icons.check_circle,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Paid',
+        value: '$paidCount',
+        icon: Icons.payments_rounded,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Unpaid',
+        value: '$unpaidCount',
+        icon: Icons.pending_actions_rounded,
+        iconColor: AppColors.white,
+        iconBackground: AppColors.charcoal,
+      ),
+    ];
+
     if (isMobile) {
       return Column(
         children: [
           Row(
             children: [
-              Expanded(
-                child: _TopMetricCard(
-                  title: 'Total Orders',
-                  value: '$totalCount',
-                  icon: Icons.receipt_long,
-                  iconColor: AppColors.gold,
-                  iconBackground: AppColors.charcoal,
-                ),
-              ),
+              Expanded(child: cards[0]),
               const SizedBox(width: 12),
-              Expanded(
-                child: _TopMetricCard(
-                  title: 'Pending',
-                  value: '$pendingCount',
-                  icon: Icons.access_time,
-                  iconColor: AppColors.white,
-                  iconBackground: AppColors.charcoal,
-                ),
-              ),
+              Expanded(child: cards[1]),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: _TopMetricCard(
-                  title: 'Delivered',
-                  value: '$deliveredCount',
-                  icon: Icons.check_circle,
-                  iconColor: AppColors.gold,
-                  iconBackground: AppColors.charcoal,
-                ),
-              ),
+              Expanded(child: cards[2]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[3]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: cards[4]),
               const Expanded(child: SizedBox()),
             ],
           ),
@@ -232,35 +291,15 @@ class _OrdersTopSummary extends StatelessWidget {
 
     return Row(
       children: [
-        Expanded(
-          child: _TopMetricCard(
-            title: 'Total Orders',
-            value: '$totalCount',
-            icon: Icons.receipt_long,
-            iconColor: AppColors.gold,
-            iconBackground: AppColors.charcoal,
-          ),
-        ),
+        Expanded(child: cards[0]),
         const SizedBox(width: 14),
-        Expanded(
-          child: _TopMetricCard(
-            title: 'Pending',
-            value: '$pendingCount',
-            icon: Icons.access_time,
-            iconColor: AppColors.white,
-            iconBackground: AppColors.charcoal,
-          ),
-        ),
+        Expanded(child: cards[1]),
         const SizedBox(width: 14),
-        Expanded(
-          child: _TopMetricCard(
-            title: 'Delivered',
-            value: '$deliveredCount',
-            icon: Icons.check_circle,
-            iconColor: AppColors.gold,
-            iconBackground: AppColors.charcoal,
-          ),
-        ),
+        Expanded(child: cards[2]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[3]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[4]),
       ],
     );
   }
@@ -514,6 +553,30 @@ class _PremiumOrderCard extends StatelessWidget {
     }
   }
 
+  Color _paymentStatusColor() {
+    switch (order.paymentStatus) {
+      case 'Paid':
+        return AppColors.gold;
+      case 'Part Paid':
+        return const Color(0xFFE5C15A);
+      case 'Failed':
+        return const Color(0xFFD66B6B);
+      default:
+        return AppColors.charcoal;
+    }
+  }
+
+  Color _paymentProofColor() {
+    switch (order.paymentProofStatus) {
+      case 'Received':
+        return AppColors.gold;
+      case 'Reviewed':
+        return const Color(0xFFE5C15A);
+      default:
+        return AppColors.charcoal;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final orderController = context.read<OrderController>();
@@ -551,6 +614,7 @@ class _PremiumOrderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     _OrderActions(
+                      order: order,
                       isDelivered: order.isDelivered,
                       onToggleDelivered: () async {
                         await orderController.toggleDelivered(order.id);
@@ -577,8 +641,9 @@ class _PremiumOrderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     SizedBox(
-                      width: 190,
+                      width: 210,
                       child: _OrderActions(
+                        order: order,
                         isDelivered: order.isDelivered,
                         onToggleDelivered: () async {
                           await orderController.toggleDelivered(order.id);
@@ -652,6 +717,48 @@ class _PremiumOrderCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _InfoSection(
+            title: 'Payment Status',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _StatusBadge(
+                      label: 'Payment: ${order.paymentStatus}',
+                      color: _paymentStatusColor(),
+                      textColor: order.paymentStatus == 'Pending'
+                          ? AppColors.white
+                          : AppColors.primaryBlack,
+                    ),
+                    _StatusBadge(
+                      label: 'Proof: ${order.paymentProofStatus}',
+                      color: _paymentProofColor(),
+                      textColor: order.paymentProofStatus == 'Not Sent'
+                          ? AppColors.white
+                          : AppColors.primaryBlack,
+                    ),
+                    _StatusBadge(
+                      label: order.paymentUpdateSent
+                          ? 'Update Sent'
+                          : 'Update Not Sent',
+                      color: order.paymentUpdateSent
+                          ? AppColors.gold
+                          : AppColors.charcoal,
+                      textColor: order.paymentUpdateSent
+                          ? AppColors.primaryBlack
+                          : AppColors.white,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _PaymentActionGrid(order: order),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _InfoSection(
             title: 'Ordered Items',
             child: Column(
               children: List.generate(order.items.length, (index) {
@@ -684,6 +791,19 @@ class _PremiumOrderCard extends StatelessWidget {
                 _TextRow('Payment Method', order.paymentMethod),
                 const SizedBox(height: 10),
                 _TextRow(
+                  'Payment Status',
+                  order.paymentStatus,
+                  highlightGold: order.paymentStatus == 'Paid',
+                ),
+                const SizedBox(height: 10),
+                _TextRow(
+                  'Payment Proof',
+                  order.paymentProofStatus,
+                  highlightGold: order.paymentProofStatus == 'Received' ||
+                      order.paymentProofStatus == 'Reviewed',
+                ),
+                const SizedBox(height: 10),
+                _TextRow(
                   'Tracking Code',
                   order.trackingCode.isEmpty ? 'Not assigned' : order.trackingCode,
                   highlightGold: order.trackingCode.isNotEmpty,
@@ -702,6 +822,184 @@ class _PremiumOrderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PaymentActionGrid extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _PaymentActionGrid({
+    required this.order,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final orderController = context.read<OrderController>();
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    final actions = [
+      _MiniActionButton(
+        label: 'Mark Paid',
+        icon: Icons.check_circle_outline,
+        isPrimary: order.paymentStatus == 'Paid',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Paid');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Mark Pending',
+        icon: Icons.pending_outlined,
+        isPrimary: order.paymentStatus == 'Pending',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Pending');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Part Paid',
+        icon: Icons.toll_rounded,
+        isPrimary: order.paymentStatus == 'Part Paid',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Part Paid');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Failed',
+        icon: Icons.error_outline,
+        isPrimary: order.paymentStatus == 'Failed',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Failed');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Received',
+        icon: Icons.file_present_outlined,
+        isPrimary: order.paymentProofStatus == 'Received',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(order.id, 'Received');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Reviewed',
+        icon: Icons.fact_check_outlined,
+        isPrimary: order.paymentProofStatus == 'Reviewed',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(order.id, 'Reviewed');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Not Sent',
+        icon: Icons.hide_source_outlined,
+        isPrimary: order.paymentProofStatus == 'Not Sent',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(order.id, 'Not Sent');
+        },
+      ),
+      _MiniActionButton(
+        label: order.paymentUpdateSent ? 'Update Sent' : 'Mark Update Sent',
+        icon: Icons.chat_bubble_outline,
+        isPrimary: order.paymentUpdateSent,
+        onTap: () async {
+          await orderController.markPaymentUpdateSent(order.id, true);
+        },
+      ),
+    ];
+
+    if (isMobile) {
+      return Column(
+        children: List.generate(actions.length, (index) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: index == actions.length - 1 ? 0 : 10),
+            child: actions[index],
+          );
+        }),
+      );
+    }
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: actions
+          .map(
+            (action) => SizedBox(
+              width: 170,
+              child: action,
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _MiniActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isPrimary;
+  final Future<void> Function() onTap;
+
+  const _MiniActionButton({
+    required this.label,
+    required this.icon,
+    required this.isPrimary,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        await onTap();
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isPrimary ? AppColors.gold : AppColors.softBlack,
+        foregroundColor:
+            isPrimary ? AppColors.primaryBlack : AppColors.white,
+        elevation: 0,
+        side: BorderSide(
+          color: isPrimary ? AppColors.gold : AppColors.charcoal,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+
+  const _StatusBadge({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+          fontSize: 12.5,
+        ),
       ),
     );
   }
@@ -1103,15 +1401,26 @@ class _OrderHeader extends StatelessWidget {
 }
 
 class _OrderActions extends StatelessWidget {
+  final CustomerOrder order;
   final bool isDelivered;
   final Future<void> Function() onToggleDelivered;
   final Future<void> Function()? onDeleteOrder;
 
   const _OrderActions({
+    required this.order,
     required this.isDelivered,
     required this.onToggleDelivered,
     this.onDeleteOrder,
   });
+
+  Future<void> _openWhatsAppAlert() async {
+    final message = Uri.encodeComponent(order.generateWhatsAppMessage());
+    final url = Uri.parse('https://wa.me/?text=$message');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1119,6 +1428,26 @@ class _OrderActions extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        ElevatedButton.icon(
+          onPressed: () async {
+            await _openWhatsAppAlert();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF25D366),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: const Icon(Icons.chat),
+          label: const Text(
+            'Send WhatsApp Alert',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        const SizedBox(height: 10),
         ElevatedButton.icon(
           onPressed: () async {
             await onToggleDelivered();
@@ -1169,7 +1498,6 @@ class _OrderActions extends StatelessWidget {
     );
   }
 }
-
 class _InfoSection extends StatelessWidget {
   final String title;
   final Widget child;

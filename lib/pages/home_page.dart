@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'track_order_page.dart';
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
@@ -41,6 +42,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _openShopSection(String sectionFilter) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MenuPage(sectionFilter: sectionFilter),
+      ),
+    );
+  }
+
+  void _openShopCategory(String category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MenuPage(categoryFilter: category),
+      ),
+    );
+  }
+
   void _addToCartAndOpenCart(ProductItem product) {
     context.read<CartController>().addToCart(product);
 
@@ -68,6 +87,31 @@ class _HomePageState extends State<HomePage> {
     }).take(6).toList();
   }
 
+  List<ProductItem> _buildTrendingProducts(List<ProductItem> products) {
+    final trending = products
+        .where((product) => product.isFeatured || product.isBestSeller)
+        .toList();
+
+    if (trending.isNotEmpty) {
+      return trending.take(8).toList();
+    }
+
+    return products.take(8).toList();
+  }
+
+  List<ProductItem> _buildLimitedEditionProducts(List<ProductItem> products) {
+    final limited = products.where((product) {
+      final collection = product.collection.trim().toLowerCase();
+      return collection == 'luxury street' || collection == 'night code';
+    }).toList();
+
+    if (limited.isNotEmpty) {
+      return limited.take(8).toList();
+    }
+
+    return products.reversed.take(8).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<StoreController>();
@@ -75,7 +119,10 @@ class _HomePageState extends State<HomePage> {
     final categories = controller.getCategories();
     final featuredProducts = controller.getFeaturedProducts();
     final newArrivals = controller.getNewArrivals();
+    final bestSellers = controller.getBestSellers();
     final allProducts = controller.getAvailableProducts();
+    final trendingProducts = _buildTrendingProducts(allProducts);
+    final limitedEditionProducts = _buildLimitedEditionProducts(allProducts);
     final searchResults = _buildSearchResults(allProducts);
 
     return Scaffold(
@@ -106,11 +153,11 @@ class _HomePageState extends State<HomePage> {
                 );
               },
               onTrackOrderTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TrackOrderPage()),
-              );
-            },
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TrackOrderPage()),
+                );
+              },
               onLookbookTap: () {
                 Navigator.push(
                   context,
@@ -172,8 +219,49 @@ class _HomePageState extends State<HomePage> {
               },
               onResultTap: _addToCartAndOpenCart,
             ),
-            _QuickCategorySection(categories: categories),
+            _QuickCategorySection(
+              categories: categories,
+              onCategoryTap: _openShopCategory,
+            ),
             const _SiteHighlightsSection(),
+            _ConversionHeroStrip(
+              onPrimaryTap: () => _openShopSection('new-drops'),
+              onSecondaryTap: () => _openShopSection('limited-edition'),
+            ),
+            _ConversionSection(
+              title: 'New Drops',
+              subtitle:
+                  'Fresh arrivals just landed. Push the latest DTHC pieces first so returning visitors see something new immediately.',
+              products: newArrivals,
+              onAddToCart: _addToCartAndOpenCart,
+              onViewAll: () => _openShopSection('new-drops'),
+            ),
+            _ConversionSection(
+              title: 'Trending Now',
+              subtitle:
+                  'Top attention-grabbers across the store. This section turns interest into action with products already pulling attention.',
+              products: trendingProducts,
+              onAddToCart: _addToCartAndOpenCart,
+              onViewAll: () => _openShopSection('trending-now'),
+              darkSection: true,
+            ),
+            _ConversionSection(
+              title: 'Best Sellers',
+              subtitle:
+                  'Show social proof through your strongest products. These are the pieces shoppers are most likely to trust and buy fast.',
+              products: bestSellers,
+              onAddToCart: _addToCartAndOpenCart,
+              onViewAll: () => _openShopSection('best-sellers'),
+            ),
+            _ConversionSection(
+              title: 'Limited Edition',
+              subtitle:
+                  'Premium exclusive pieces for customers who want standout looks. This section should feel more rare, elevated, and high-value.',
+              products: limitedEditionProducts,
+              onAddToCart: _addToCartAndOpenCart,
+              onViewAll: () => _openShopSection('limited-edition'),
+              darkSection: true,
+            ),
             _FeaturedSection(
               title: 'Featured Products',
               subtitle:
@@ -182,13 +270,6 @@ class _HomePageState extends State<HomePage> {
               onAddToCart: _addToCartAndOpenCart,
             ),
             const _CollectionsPreviewSection(),
-            _FeaturedSection(
-              title: 'New Arrivals',
-              subtitle:
-                  'Fresh products just added to the store for your next fit upgrade.',
-              products: newArrivals,
-              onAddToCart: _addToCartAndOpenCart,
-            ),
             const _LookbookPreviewSection(),
             const _PaymentDeliveryPreviewSection(),
             const _WhyChooseUsSection(),
@@ -441,9 +522,11 @@ class _SearchResultTile extends StatelessWidget {
 
 class _QuickCategorySection extends StatelessWidget {
   final List<CategoryItem> categories;
+  final ValueChanged<String> onCategoryTap;
 
   const _QuickCategorySection({
     required this.categories,
+    required this.onCategoryTap,
   });
 
   @override
@@ -486,21 +569,15 @@ class _QuickCategorySection extends StatelessWidget {
                 spacing: 14,
                 runSpacing: 14,
                 children: categories
+                    .where((category) => category.name.trim().toLowerCase() != 'all')
                     .map(
                       (category) => InkWell(
                         borderRadius: BorderRadius.circular(18),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MenuPage(),
-                            ),
-                          );
-                        },
+                        onTap: () => onCategoryTap(category.name),
                         child: _CategoryChip(
                           title: category.name,
                           icon: _mapCategoryIcon(category.icon),
-                          active: category.id == 'all',
+                          active: false,
                         ),
                       ),
                     )
@@ -692,6 +769,359 @@ class _MiniHighlightCard extends StatelessWidget {
   }
 }
 
+class _ConversionHeroStrip extends StatelessWidget {
+  final VoidCallback onPrimaryTap;
+  final VoidCallback onSecondaryTap;
+
+  const _ConversionHeroStrip({
+    required this.onPrimaryTap,
+    required this.onSecondaryTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.softBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 16 : 32,
+        vertical: 34,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 18 : 26),
+            decoration: BoxDecoration(
+              gradient: AppColors.heroGradient,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: AppColors.charcoal),
+            ),
+            child: isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'The latest DTHC drop is live.',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Push visitors straight into the strongest buying paths: fresh arrivals and exclusive premium pieces.',
+                        style: TextStyle(
+                          color: Color(0xFFDBDBDB),
+                          fontSize: 14,
+                          height: 1.6,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: onPrimaryTap,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.gold,
+                            foregroundColor: AppColors.primaryBlack,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Shop New Drops',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: onSecondaryTap,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.white,
+                            side: const BorderSide(color: AppColors.gold),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Open Limited Edition',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'The latest DTHC drop is live.',
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900,
+                                height: 1.05,
+                              ),
+                            ),
+                            SizedBox(height: 14),
+                            Text(
+                              'Push visitors straight into the strongest buying paths: fresh arrivals and exclusive premium pieces.',
+                              style: TextStyle(
+                                color: Color(0xFFDBDBDB),
+                                fontSize: 15,
+                                height: 1.7,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Column(
+                        children: [
+                          SizedBox(
+                            width: 220,
+                            child: ElevatedButton(
+                              onPressed: onPrimaryTap,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.gold,
+                                foregroundColor: AppColors.primaryBlack,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'Shop New Drops',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: 220,
+                            child: OutlinedButton(
+                              onPressed: onSecondaryTap,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.white,
+                                side: const BorderSide(color: AppColors.gold),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'Open Limited Edition',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConversionSection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<ProductItem> products;
+  final ValueChanged<ProductItem> onAddToCart;
+  final VoidCallback onViewAll;
+  final bool darkSection;
+
+  const _ConversionSection({
+    required this.title,
+    required this.subtitle,
+    required this.products,
+    required this.onAddToCart,
+    required this.onViewAll,
+    this.darkSection = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final displayProducts = products.take(4).toList();
+
+    return Container(
+      width: double.infinity,
+      color: darkSection ? AppColors.softBlack : AppColors.primaryBlack,
+      padding: EdgeInsets.symmetric(
+        horizontal: width < 768 ? 16 : 32,
+        vertical: 40,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              width < 900
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFFBDBDBD),
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        OutlinedButton(
+                          onPressed: onViewAll,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.gold,
+                            side: const BorderSide(color: AppColors.gold),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'View All in Shop',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                subtitle,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFFBDBDBD),
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        OutlinedButton(
+                          onPressed: onViewAll,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.gold,
+                            side: const BorderSide(color: AppColors.gold),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'View All in Shop',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ],
+                    ),
+              const SizedBox(height: 24),
+              if (displayProducts.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: AppColors.charcoal,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.charcoal),
+                  ),
+                  child: const Text(
+                    'No products available in this section yet.',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                GridView.builder(
+                  itemCount: displayProducts.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: width > 1100
+                        ? 4
+                        : width > 700
+                            ? 2
+                            : 1,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 18,
+                    childAspectRatio: width > 1100
+                        ? 0.72
+                        : width > 700
+                            ? 0.82
+                            : 0.95,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = displayProducts[index];
+                    return _ProductPreviewCard(
+                      product: product,
+                      onAddToCart: () => onAddToCart(product),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _FeaturedSection extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -741,7 +1171,7 @@ class _FeaturedSection extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               GridView.builder(
-                itemCount: products.length,
+                itemCount: products.take(4).length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -759,7 +1189,7 @@ class _FeaturedSection extends StatelessWidget {
                           : 0.95,
                 ),
                 itemBuilder: (context, index) {
-                  final product = products[index];
+                  final product = products.take(4).toList()[index];
                   return _ProductPreviewCard(
                     product: product,
                     onAddToCart: () => onAddToCart(product),
@@ -785,6 +1215,9 @@ class _ProductPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryEntry = product.primaryImageEntry;
+    final imageUrl = primaryEntry.imageUrl.trim();
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -808,7 +1241,7 @@ class _ProductPreviewCard extends StatelessWidget {
               height: 130,
               width: double.infinity,
               color: AppColors.charcoal,
-              child: product.imageUrl.trim().isEmpty
+              child: imageUrl.isEmpty
                   ? Center(
                       child: Icon(
                         _productIcon(product.category),
@@ -817,7 +1250,7 @@ class _ProductPreviewCard extends StatelessWidget {
                       ),
                     )
                   : Image.network(
-                      product.imageUrl,
+                      imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Center(
@@ -833,16 +1266,20 @@ class _ProductPreviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            product.name,
+            primaryEntry.title.isNotEmpty ? primaryEntry.title : product.name,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: AppColors.white,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 6),
           Text(
-            product.description,
+            primaryEntry.description.isNotEmpty
+                ? primaryEntry.description
+                : product.description,
             style: const TextStyle(
               fontSize: 14,
               color: Color(0xFFBDBDBD),
@@ -869,11 +1306,17 @@ class _ProductPreviewCard extends StatelessWidget {
                   backgroundColor: AppColors.white,
                   textColor: AppColors.primaryBlack,
                 ),
+              if (product.isFeatured)
+                _TagChip(
+                  label: 'Trending',
+                  backgroundColor: AppColors.charcoal,
+                  textColor: AppColors.white,
+                ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            'GHS ${product.price.toStringAsFixed(0)}',
+            'GHS ${primaryEntry.price.toStringAsFixed(0)}',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w900,

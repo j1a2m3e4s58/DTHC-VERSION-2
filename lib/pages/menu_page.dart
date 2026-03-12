@@ -19,11 +19,13 @@ import 'track_order_page.dart';
 class MenuPage extends StatefulWidget {
   final String? collectionFilter;
   final String? categoryFilter;
+  final String? sectionFilter;
 
   const MenuPage({
     super.key,
     this.collectionFilter,
     this.categoryFilter,
+    this.sectionFilter,
   });
 
   @override
@@ -43,6 +45,12 @@ class _MenuPageState extends State<MenuPage> {
 
   String? get _activeCategoryFilter {
     final value = widget.categoryFilter?.trim();
+    if (value == null || value.isEmpty) return null;
+    return value;
+  }
+
+  String? get _activeSectionFilter {
+    final value = widget.sectionFilter?.trim().toLowerCase();
     if (value == null || value.isEmpty) return null;
     return value;
   }
@@ -83,6 +91,22 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
+  bool _matchesSectionFilter(ProductItem product) {
+    switch (_activeSectionFilter) {
+      case 'new-drops':
+        return product.isNewArrival;
+      case 'trending-now':
+        return product.isFeatured || product.isBestSeller;
+      case 'best-sellers':
+        return product.isBestSeller;
+      case 'limited-edition':
+        final collection = product.collection.trim().toLowerCase();
+        return collection == 'luxury street' || collection == 'night code';
+      default:
+        return true;
+    }
+  }
+
   List<ProductItem> _filterProducts(List<ProductItem> allProducts) {
     final query = _searchQuery.trim().toLowerCase();
 
@@ -93,6 +117,10 @@ class _MenuPageState extends State<MenuPage> {
         return product.collection.trim().toLowerCase() ==
             _activeCollectionFilter!.toLowerCase();
       }).toList();
+    }
+
+    if (_activeSectionFilter != null) {
+      workingList = workingList.where(_matchesSectionFilter).toList();
     }
 
     final effectiveCategory = _activeCategoryFilter ?? selectedCategory;
@@ -126,6 +154,10 @@ class _MenuPageState extends State<MenuPage> {
         return product.collection.trim().toLowerCase() ==
             _activeCollectionFilter!.toLowerCase();
       }).toList();
+    }
+
+    if (_activeSectionFilter != null) {
+      workingList = workingList.where(_matchesSectionFilter).toList();
     }
 
     if (_activeCategoryFilter != null && _activeCategoryFilter != 'All') {
@@ -164,6 +196,43 @@ class _MenuPageState extends State<MenuPage> {
       context,
       MaterialPageRoute(builder: (_) => const MenuPage()),
     );
+  }
+
+  void _clearSectionFilter() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const MenuPage()),
+    );
+  }
+
+  String _sectionTitle(String section) {
+    switch (section) {
+      case 'new-drops':
+        return 'New Drops';
+      case 'trending-now':
+        return 'Trending Now';
+      case 'best-sellers':
+        return 'Best Sellers';
+      case 'limited-edition':
+        return 'Limited Edition';
+      default:
+        return 'Shop DTHC';
+    }
+  }
+
+  String _sectionSubtitle(String section) {
+    switch (section) {
+      case 'new-drops':
+        return 'Fresh arrivals just added to the DTHC lineup.';
+      case 'trending-now':
+        return 'The hottest pieces customers are checking out right now.';
+      case 'best-sellers':
+        return 'Top-performing products shoppers keep coming back for.';
+      case 'limited-edition':
+        return 'Premium statement pieces from exclusive DTHC drops.';
+      default:
+        return 'Premium streetwear. Limited drops. Built for real drip.';
+    }
   }
 
   @override
@@ -250,6 +319,17 @@ class _MenuPageState extends State<MenuPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildHeader(context, isMobile),
+                        if (_activeSectionFilter != null) ...[
+                          const SizedBox(height: 18),
+                          _FilterBanner(
+                            label: 'Section Filter',
+                            value: _sectionTitle(_activeSectionFilter!),
+                            borderColor: AppColors.gold,
+                            badgeColor: AppColors.gold,
+                            badgeTextColor: AppColors.primaryBlack,
+                            onClear: _clearSectionFilter,
+                          ),
+                        ],
                         if (_activeCollectionFilter != null) ...[
                           const SizedBox(height: 18),
                           _FilterBanner(
@@ -315,17 +395,21 @@ class _MenuPageState extends State<MenuPage> {
   Widget _buildHeader(BuildContext context, bool isMobile) {
     final cartCount = context.watch<CartController>().totalItemsCount;
 
-    final title = _activeCollectionFilter != null
-        ? '${_activeCollectionFilter!} Collection'
-        : _activeCategoryFilter != null && _activeCategoryFilter != 'All'
-            ? '${_activeCategoryFilter!} Edit'
-            : 'Shop DTHC';
+    final title = _activeSectionFilter != null
+        ? _sectionTitle(_activeSectionFilter!)
+        : _activeCollectionFilter != null
+            ? '${_activeCollectionFilter!} Collection'
+            : _activeCategoryFilter != null && _activeCategoryFilter != 'All'
+                ? '${_activeCategoryFilter!} Edit'
+                : 'Shop DTHC';
 
-    final subtitle = _activeCollectionFilter != null
-        ? 'Browsing products filtered from the $_activeCollectionFilter collection.'
-        : _activeCategoryFilter != null && _activeCategoryFilter != 'All'
-            ? 'Browsing products filtered to the $_activeCategoryFilter category.'
-            : 'Premium streetwear. Limited drops. Built for real drip.';
+    final subtitle = _activeSectionFilter != null
+        ? _sectionSubtitle(_activeSectionFilter!)
+        : _activeCollectionFilter != null
+            ? 'Browsing products filtered from the $_activeCollectionFilter collection.'
+            : _activeCategoryFilter != null && _activeCategoryFilter != 'All'
+                ? 'Browsing products filtered to the $_activeCategoryFilter category.'
+                : 'Premium streetwear. Limited drops. Built for real drip.';
 
     return isMobile
         ? Column(
@@ -485,9 +569,13 @@ class _MenuPageState extends State<MenuPage> {
     final hasCollection = _activeCollectionFilter != null;
     final hasCategory =
         _activeCategoryFilter != null && _activeCategoryFilter != 'All';
+    final hasSection = _activeSectionFilter != null;
 
     String label;
-    if (hasSearch && hasCollection) {
+    if (hasSearch && hasSection) {
+      label =
+          '$count result${count == 1 ? '' : 's'} for "${_searchQuery.trim()}" in ${_sectionTitle(_activeSectionFilter!)}';
+    } else if (hasSearch && hasCollection) {
       label =
           '$count result${count == 1 ? '' : 's'} for "${_searchQuery.trim()}" in ${_activeCollectionFilter!}';
     } else if (hasSearch && hasCategory) {
@@ -496,6 +584,9 @@ class _MenuPageState extends State<MenuPage> {
     } else if (hasSearch) {
       label =
           '$count result${count == 1 ? '' : 's'} for "${_searchQuery.trim()}"';
+    } else if (hasSection) {
+      label =
+          '$count product${count == 1 ? '' : 's'} in ${_sectionTitle(_activeSectionFilter!)}';
     } else if (hasCollection) {
       label =
           '$count product${count == 1 ? '' : 's'} in ${_activeCollectionFilter!}';

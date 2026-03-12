@@ -8,7 +8,7 @@ class MockStoreData {
   static StoreSettings storeSettings = const StoreSettings(
     storeName: 'Drip Too Hard Collections',
     tagline: 'Streetwear • Premium Fits • Ghana Delivery',
-    phoneNumber: '0543290967',
+    phoneNumber: '0534206256',
     email: 'hello@dthc.com',
     address: 'Accra, Ghana',
     logoUrl: '',
@@ -700,7 +700,7 @@ class MockStoreData {
   static const List<Map<String, dynamic>> contactChannels = [
     {
       'title': 'Phone',
-      'value': '0543290967',
+      'value': '0534206256',
       'subtitle': 'Call for order help, delivery clarification, and quick support.',
       'icon': 'phone',
     },

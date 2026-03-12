@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_colors.dart';
@@ -35,9 +36,17 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
     super.dispose();
   }
 
+  String _normalizeTrackingCode(String value) {
+    return value.trim().toLowerCase().replaceAll(' ', '');
+  }
+
+  String _normalizePhone(String value) {
+    return value.trim().toLowerCase().replaceAll(' ', '');
+  }
+
   void _searchOrder() {
-    final trackingCode = _trackingCodeController.text.trim().toLowerCase();
-    final phone = _phoneController.text.trim().toLowerCase();
+    final trackingCode = _normalizeTrackingCode(_trackingCodeController.text);
+    final phone = _normalizePhone(_phoneController.text);
 
     if (trackingCode.isEmpty && phone.isEmpty) {
       setState(() {
@@ -54,11 +63,11 @@ class _TrackOrderPageState extends State<TrackOrderPage> {
     for (final order in orders) {
       final matchesTracking = trackingCode.isEmpty
           ? true
-          : order.trackingCode.trim().toLowerCase() == trackingCode;
+          : _normalizeTrackingCode(order.trackingCode) == trackingCode;
 
       final matchesPhone = phone.isEmpty
           ? true
-          : order.phoneNumber.trim().toLowerCase().contains(phone);
+          : _normalizePhone(order.phoneNumber).contains(phone);
 
       if (matchesTracking && matchesPhone) {
         foundOrder = order;
@@ -251,7 +260,7 @@ class _TrackHeroSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Use your tracking code or phone number to check whether your DTHC order is pending or delivered.',
+            'Use your tracking code or phone number to check your current DTHC order progress, payment updates, and delivery status.',
             style: TextStyle(
               color: const Color(0xFFDBDBDB),
               fontSize: isMobile ? 14 : 15,
@@ -348,6 +357,7 @@ class _TrackSearchCard extends StatelessWidget {
               'Tracking Code',
               Icons.local_shipping_outlined,
             ),
+            onSubmitted: (_) => onSearch(),
           ),
           const SizedBox(height: 14),
           TextField(
@@ -358,6 +368,7 @@ class _TrackSearchCard extends StatelessWidget {
               'Phone Number (optional)',
               Icons.phone_outlined,
             ),
+            onSubmitted: (_) => onSearch(),
           ),
           const SizedBox(height: 18),
           Row(
@@ -497,10 +508,19 @@ class _TrackResultPanel extends StatelessWidget {
         children: [
           _StatusHeader(order: order!),
           const SizedBox(height: 18),
+          _StatusSummaryGrid(order: order!),
+          const SizedBox(height: 18),
+          _SectionTitle(title: 'Order Details'),
+          const SizedBox(height: 12),
           _TrackInfoCard(
             title: 'Tracking Code',
             value: order!.trackingCode.isEmpty ? 'Not assigned' : order!.trackingCode,
             goldValue: true,
+          ),
+          const SizedBox(height: 12),
+          _TrackInfoCard(
+            title: 'Order Date',
+            value: DateFormat('EEE, d MMM yyyy • h:mm a').format(order!.createdAt),
           ),
           const SizedBox(height: 12),
           _TrackInfoCard(
@@ -522,13 +542,7 @@ class _TrackResultPanel extends StatelessWidget {
             title: 'Delivery Address',
             value: order!.address,
           ),
-          const SizedBox(height: 12),
-          _TrackInfoCard(
-            title: 'Order Total',
-            value: 'GHS ${order!.total.toStringAsFixed(2)}',
-            goldValue: true,
-          ),
-          if (order!.note.isNotEmpty) ...[
+          if (order!.note.trim().isNotEmpty) ...[
             const SizedBox(height: 12),
             _TrackInfoCard(
               title: 'Order Note',
@@ -536,14 +550,51 @@ class _TrackResultPanel extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 18),
-          const Text(
-            'Ordered Items',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+          _SectionTitle(title: 'Payment & Delivery'),
+          const SizedBox(height: 12),
+          _TrackInfoCard(
+            title: 'Payment Status',
+            value: order!.paymentStatus,
+            goldValue: _isPositivePaymentStatus(order!.paymentStatus),
           ),
+          const SizedBox(height: 12),
+          _TrackInfoCard(
+            title: 'Payment Proof Status',
+            value: order!.paymentProofStatus,
+            goldValue: _isProofProvided(order!.paymentProofStatus),
+          ),
+          const SizedBox(height: 12),
+          _TrackInfoCard(
+            title: 'Payment Update Sent',
+            value: order!.paymentUpdateSent ? 'Yes' : 'No',
+            goldValue: order!.paymentUpdateSent,
+          ),
+          const SizedBox(height: 12),
+          _TrackInfoCard(
+            title: 'Delivery Status',
+            value: order!.isDelivered ? 'Delivered' : 'Not Delivered Yet',
+            goldValue: order!.isDelivered,
+          ),
+          const SizedBox(height: 18),
+          _SectionTitle(title: 'Order Summary'),
+          const SizedBox(height: 12),
+          _OrderAmountRow(
+            label: 'Subtotal',
+            value: 'GHS ${order!.subtotal.toStringAsFixed(2)}',
+          ),
+          const SizedBox(height: 10),
+          _OrderAmountRow(
+            label: 'Delivery Fee',
+            value: 'GHS ${order!.deliveryFee.toStringAsFixed(2)}',
+          ),
+          const SizedBox(height: 10),
+          _OrderAmountRow(
+            label: 'Total',
+            value: 'GHS ${order!.total.toStringAsFixed(2)}',
+            isHighlighted: true,
+          ),
+          const SizedBox(height: 18),
+          _SectionTitle(title: 'Ordered Items'),
           const SizedBox(height: 12),
           ...order!.items.map(
             (item) => Padding(
@@ -554,6 +605,22 @@ class _TrackResultPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  static bool _isPositivePaymentStatus(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'paid' ||
+        normalized == 'confirmed' ||
+        normalized == 'completed' ||
+        normalized == 'successful';
+  }
+
+  static bool _isProofProvided(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'sent' ||
+        normalized == 'submitted' ||
+        normalized == 'received' ||
+        normalized == 'verified';
   }
 }
 
@@ -598,7 +665,7 @@ class _StatusHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isDelivered ? 'Order Delivered' : 'Order Pending',
+                  isDelivered ? 'Order Delivered' : 'Order Received',
                   style: const TextStyle(
                     color: AppColors.white,
                     fontSize: 20,
@@ -609,7 +676,7 @@ class _StatusHeader extends StatelessWidget {
                 Text(
                   isDelivered
                       ? 'Your order has been marked as delivered by DTHC.'
-                      : 'Your order has been received and is being processed.',
+                      : 'Your order has been received and is currently being processed.',
                   style: const TextStyle(
                     color: Color(0xFFBDBDBD),
                     height: 1.5,
@@ -620,6 +687,128 @@ class _StatusHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatusSummaryGrid extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _StatusSummaryGrid({
+    required this.order,
+  });
+
+  Color _badgeColor(bool active) {
+    return active ? AppColors.gold : AppColors.charcoal;
+  }
+
+  Color _textColor(bool active) {
+    return active ? AppColors.primaryBlack : AppColors.white;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final paymentPaid = _TrackResultPanel._isPositivePaymentStatus(
+      order.paymentStatus,
+    );
+    final proofSent = _TrackResultPanel._isProofProvided(
+      order.paymentProofStatus,
+    );
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _MiniStatusBadge(
+          label: order.isDelivered ? 'Delivered' : 'Pending Delivery',
+          color: _badgeColor(order.isDelivered),
+          textColor: _textColor(order.isDelivered),
+          icon: order.isDelivered
+              ? Icons.local_shipping
+              : Icons.inventory_2_outlined,
+        ),
+        _MiniStatusBadge(
+          label: paymentPaid ? 'Payment Confirmed' : order.paymentStatus,
+          color: _badgeColor(paymentPaid),
+          textColor: _textColor(paymentPaid),
+          icon: paymentPaid ? Icons.payments : Icons.account_balance_wallet_outlined,
+        ),
+        _MiniStatusBadge(
+          label: proofSent ? 'Proof Submitted' : order.paymentProofStatus,
+          color: _badgeColor(proofSent),
+          textColor: _textColor(proofSent),
+          icon: proofSent ? Icons.receipt_long : Icons.image_outlined,
+        ),
+        _MiniStatusBadge(
+          label: order.paymentUpdateSent
+              ? 'Update Sent'
+              : 'No Payment Update Yet',
+          color: _badgeColor(order.paymentUpdateSent),
+          textColor: _textColor(order.paymentUpdateSent),
+          icon: order.paymentUpdateSent ? Icons.message : Icons.chat_bubble_outline,
+        ),
+      ],
+    );
+  }
+}
+
+class _MiniStatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+  final IconData icon;
+
+  const _MiniStatusBadge({
+    required this.label,
+    required this.color,
+    required this.textColor,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: textColor),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: AppColors.white,
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
       ),
     );
   }
@@ -665,6 +854,52 @@ class _TrackInfoCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
               fontSize: 14,
               height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderAmountRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isHighlighted;
+
+  const _OrderAmountRow({
+    required this.label,
+    required this.value,
+    this.isHighlighted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isHighlighted ? AppColors.gold : AppColors.charcoal,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isHighlighted ? AppColors.gold : AppColors.white,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
