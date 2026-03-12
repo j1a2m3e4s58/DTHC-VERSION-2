@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'track_order_page.dart';
-import 'contact_page.dart';
+
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
+import '../models/delivery_zone.dart';
 import '../models/store_settings.dart';
 import '../widgets/custom_navbar.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
+import 'contact_page.dart';
 import 'home_page.dart';
 import 'lookbook_page.dart';
 import 'menu_page.dart';
+import 'track_order_page.dart';
 
 class PaymentDeliveryPage extends StatelessWidget {
   const PaymentDeliveryPage({super.key});
@@ -20,6 +22,7 @@ class PaymentDeliveryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<StoreController>();
     final storeSettings = controller.getStoreSettings();
+    final deliveryZones = controller.getDeliveryZones();
     final paymentMethods = controller.getPaymentMethods();
     final deliverySteps = controller.getDeliverySteps();
     final returnExchangeNotes = controller.getReturnExchangeNotes();
@@ -90,7 +93,10 @@ class PaymentDeliveryPage extends StatelessWidget {
               },
             ),
             _PaymentHeroSection(storeSettings: storeSettings),
-            _DeliveryZonesSection(storeSettings: storeSettings),
+            _DeliveryZonesSection(
+              storeSettings: storeSettings,
+              deliveryZones: deliveryZones,
+            ),
             _PaymentMethodsSection(paymentMethods: paymentMethods),
             _DeliveryStepsSection(
               deliverySteps: deliverySteps,
@@ -267,8 +273,8 @@ class _HeroInfoCard extends StatelessWidget {
           const SizedBox(height: 14),
           _MiniInfoRow(
             icon: Icons.local_shipping_outlined,
-            title: 'Standard Delivery Fee',
-            subtitle: 'From GHS ${storeSettings.deliveryFee.toStringAsFixed(0)}',
+            title: 'Zone-Based Delivery',
+            subtitle: 'Pricing now follows the selected delivery zone.',
           ),
           const SizedBox(height: 14),
           _MiniInfoRow(
@@ -343,15 +349,16 @@ class _MiniInfoRow extends StatelessWidget {
 
 class _DeliveryZonesSection extends StatelessWidget {
   final StoreSettings storeSettings;
+  final List<DeliveryZone> deliveryZones;
 
   const _DeliveryZonesSection({
     required this.storeSettings,
+    required this.deliveryZones,
   });
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final zones = _ghanaDeliveryZones(storeSettings);
 
     return Container(
       width: double.infinity,
@@ -366,7 +373,7 @@ class _DeliveryZonesSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Ghana Delivery Zones',
+                'Delivery Zones',
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 30,
@@ -374,85 +381,53 @@ class _DeliveryZonesSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Make delivery feel realistic by showing different Ghana zones, estimated timing, and how fees change by distance.',
-                style: TextStyle(
+              Text(
+                deliveryZones.isEmpty
+                    ? 'Delivery zones are currently being updated. Please contact DTHC before placing your order.'
+                    : 'These delivery zones are managed directly by DTHC admin. Customers will only see the active zones currently available.',
+                style: const TextStyle(
                   color: Color(0xFFBDBDBD),
                   fontSize: 15,
                   height: 1.6,
                 ),
               ),
               const SizedBox(height: 24),
-              Wrap(
-                spacing: 18,
-                runSpacing: 18,
-                children: zones
-                    .map((zone) => _DeliveryZoneCard(zone: zone))
-                    .toList(),
-              ),
+              if (deliveryZones.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: AppColors.softBlack,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.charcoal),
+                  ),
+                  child: Text(
+                    'No delivery zones have been added yet. Please check back soon or contact DTHC on ${storeSettings.phoneNumber}.',
+                    style: const TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontSize: 14,
+                      height: 1.6,
+                    ),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 18,
+                  children: deliveryZones
+                      .map((zone) => _DeliveryZoneCard(zone: zone))
+                      .toList(),
+                ),
             ],
           ),
         ),
       ),
     );
   }
-
-  List<Map<String, dynamic>> _ghanaDeliveryZones(StoreSettings storeSettings) {
-    final baseFee = storeSettings.deliveryFee;
-    final freeThreshold = storeSettings.freeDeliveryThreshold;
-
-    return [
-      {
-        'title': 'Accra Central',
-        'subtitle':
-            'Same-city delivery for Accra Mall, Osu, East Legon, Spintex, Adabraka, and nearby areas.',
-        'fee': baseFee,
-        'time': 'Same day or within 24 hours',
-        'icon': Icons.location_city_outlined,
-        'badge': 'Fastest Zone',
-      },
-      {
-        'title': 'Greater Accra Outer Zone',
-        'subtitle':
-            'For Tema, Kasoa, Madina, Adenta, Amasaman, and surrounding areas outside central delivery routes.',
-        'fee': baseFee + 10,
-        'time': '1 to 2 business days',
-        'icon': Icons.map_outlined,
-        'badge': 'Popular Route',
-      },
-      {
-        'title': 'Regional Delivery',
-        'subtitle':
-            'For Kumasi, Takoradi, Cape Coast, Ho, Koforidua, Tamale, and other major towns across Ghana.',
-        'fee': baseFee + 20,
-        'time': '2 to 4 business days',
-        'icon': Icons.local_shipping_outlined,
-        'badge': 'Nationwide',
-      },
-      {
-        'title': 'Express Coordination',
-        'subtitle':
-            'Urgent delivery requests can be discussed directly before dispatch depending on rider and route availability.',
-        'fee': null,
-        'time': 'Custom timing after confirmation',
-        'icon': Icons.flash_on_outlined,
-        'badge': 'By Request',
-      },
-      {
-        'title': 'Free Delivery Threshold',
-        'subtitle':
-            'Orders above this amount can qualify for free delivery in selected Accra routes depending on active promo policy.',
-        'fee': freeThreshold,
-        'time': 'Applies after order review',
-        'icon': Icons.card_giftcard_outlined,
-        'badge': 'Promo Ready',
-      },
-    ];
-  }
 }
 
 class _DeliveryZoneCard extends StatelessWidget {
-  final Map<String, dynamic> zone;
+  final DeliveryZone zone;
 
   const _DeliveryZoneCard({
     required this.zone,
@@ -460,13 +435,6 @@ class _DeliveryZoneCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = '${zone['title'] ?? ''}';
-    final subtitle = '${zone['subtitle'] ?? ''}';
-    final time = '${zone['time'] ?? ''}';
-    final badge = '${zone['badge'] ?? ''}';
-    final fee = zone['fee'];
-    final icon = zone['icon'] as IconData? ?? Icons.local_shipping_outlined;
-
     return Container(
       width: 400,
       padding: const EdgeInsets.all(20),
@@ -497,34 +465,33 @@ class _DeliveryZoneCard extends StatelessWidget {
                   color: AppColors.gold,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  icon,
+                child: const Icon(
+                  Icons.location_on_outlined,
                   color: AppColors.primaryBlack,
                 ),
               ),
-              if (badge.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2212),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: AppColors.gold),
-                  ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      color: AppColors.gold,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A2212),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.gold),
+                ),
+                child: const Text(
+                  'Active Zone',
+                  style: TextStyle(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            title,
+            zone.name,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 20,
@@ -532,9 +499,9 @@ class _DeliveryZoneCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            subtitle,
-            style: const TextStyle(
+          const Text(
+            'Select this zone during checkout to apply the correct delivery fee to your final order total.',
+            style: TextStyle(
               color: Color(0xFFBDBDBD),
               fontSize: 14,
               height: 1.6,
@@ -548,29 +515,9 @@ class _DeliveryZoneCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.border),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fee is num
-                      ? 'Estimated Fee: GHS ${fee.toStringAsFixed(0)}'
-                      : 'Estimated Fee: Confirm before dispatch',
-                  style: const TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Timing: $time',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+              children: [],
             ),
           ),
         ],

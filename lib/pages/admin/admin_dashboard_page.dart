@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'admin_delivery_zones_page.dart';
 import '../../core/app_colors.dart';
 import '../../data/order_controller.dart';
 import 'admin_collections_page.dart';
@@ -92,7 +92,7 @@ class AdminDashboardPage extends StatelessWidget {
         titleSpacing: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'DTHC Admin',
               style: TextStyle(
@@ -197,7 +197,7 @@ class AdminDashboardPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 if (isMobile)
                   Column(
-                    children: const [
+                    children: [
                       _DashboardActionCard(
                         title: 'Product Management',
                         subtitle:
@@ -229,6 +229,17 @@ class AdminDashboardPage extends StatelessWidget {
                         page: AdminCollectionsPage(),
                         highlightValue: 'Storefront',
                       ),
+                      const SizedBox(height: 16),
+_DashboardActionCard(
+  title: 'Delivery Zones',
+  subtitle:
+      'Add, edit, and remove customer delivery areas and pricing without hard-coded checkout zones.',
+  icon: Icons.local_shipping_rounded,
+  accentIcon: Icons.location_on_outlined,
+  buttonLabel: 'Open Delivery Zones',
+  page: AdminDeliveryZonesPage(),
+  highlightValue: 'Logistics',
+),
                       SizedBox(height: 16),
                       _DashboardActionCard(
                         title: 'Lookbook Management',
@@ -250,7 +261,7 @@ class AdminDashboardPage extends StatelessWidget {
                     crossAxisSpacing: 18,
                     mainAxisSpacing: 18,
                     childAspectRatio: isTablet ? 1.18 : 1.42,
-                    children: const [
+                    children: [
                       _DashboardActionCard(
                         title: 'Product Management',
                         subtitle:
@@ -290,6 +301,16 @@ class AdminDashboardPage extends StatelessWidget {
                         page: AdminLookbookPage(),
                         highlightValue: 'Editorial',
                       ),
+                      _DashboardActionCard(
+  title: 'Delivery Zones',
+  subtitle:
+      'Add, edit, and remove customer delivery areas and pricing without hard-coded checkout zones.',
+  icon: Icons.local_shipping_rounded,
+  accentIcon: Icons.location_on_outlined,
+  buttonLabel: 'Open Delivery Zones',
+  page: AdminDeliveryZonesPage(),
+  highlightValue: 'Logistics',
+),
                       _DashboardActionCard(
                         title: 'Customer Orders',
                         subtitle:

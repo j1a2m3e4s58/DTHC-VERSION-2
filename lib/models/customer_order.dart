@@ -13,6 +13,7 @@ class CustomerOrder {
   final DateTime createdAt;
   final String paymentMethod;
   final String trackingCode;
+  final String deliveryZoneName;
 
   final String paymentStatus;
   final String paymentProofStatus;
@@ -34,6 +35,7 @@ class CustomerOrder {
     required this.createdAt,
     this.paymentMethod = 'Mobile Money',
     this.trackingCode = '',
+    this.deliveryZoneName = '',
     this.paymentStatus = 'Pending',
     this.paymentProofStatus = 'Not Sent',
     this.paymentUpdateSent = false,
@@ -55,6 +57,7 @@ class CustomerOrder {
       'createdAt': createdAt.toIso8601String(),
       'paymentMethod': paymentMethod,
       'trackingCode': trackingCode,
+      'deliveryZoneName': deliveryZoneName,
       'paymentStatus': paymentStatus,
       'paymentProofStatus': paymentProofStatus,
       'paymentUpdateSent': paymentUpdateSent,
@@ -95,6 +98,7 @@ class CustomerOrder {
           DateTime.now(),
       paymentMethod: (map['paymentMethod'] ?? 'Mobile Money').toString(),
       trackingCode: (map['trackingCode'] ?? '').toString(),
+      deliveryZoneName: (map['deliveryZoneName'] ?? '').toString(),
       paymentStatus: (map['paymentStatus'] ?? 'Pending').toString(),
       paymentProofStatus: (map['paymentProofStatus'] ?? 'Not Sent').toString(),
       paymentUpdateSent: (map['paymentUpdateSent'] ?? false) == true,
@@ -103,7 +107,7 @@ class CustomerOrder {
     );
   }
 
-    CustomerOrder copyWith({
+  CustomerOrder copyWith({
     String? id,
     String? customerName,
     String? phoneNumber,
@@ -116,6 +120,7 @@ class CustomerOrder {
     DateTime? createdAt,
     String? paymentMethod,
     String? trackingCode,
+    String? deliveryZoneName,
     String? paymentStatus,
     String? paymentProofStatus,
     bool? paymentUpdateSent,
@@ -135,6 +140,7 @@ class CustomerOrder {
       createdAt: createdAt ?? this.createdAt,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       trackingCode: trackingCode ?? this.trackingCode,
+      deliveryZoneName: deliveryZoneName ?? this.deliveryZoneName,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       paymentProofStatus: paymentProofStatus ?? this.paymentProofStatus,
       paymentUpdateSent: paymentUpdateSent ?? this.paymentUpdateSent,
@@ -151,8 +157,12 @@ class CustomerOrder {
     buffer.writeln('Customer: $customerName');
     buffer.writeln('Phone: $phoneNumber');
     buffer.writeln('Address: $address');
-    buffer.writeln('');
 
+    if (deliveryZoneName.isNotEmpty) {
+      buffer.writeln('Delivery Zone: $deliveryZoneName');
+    }
+
+    buffer.writeln('');
     buffer.writeln('Items:');
     for (final item in items) {
       buffer.writeln('${item.quantity} × ${item.name}');

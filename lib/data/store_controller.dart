@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-
+import '../models/delivery_zone.dart';
 import '../models/category_item.dart';
 import '../models/food_item.dart';
 import '../models/food_pack.dart';
@@ -209,7 +209,49 @@ class StoreController extends ChangeNotifier {
     'product',
     'none',
   ];
+    List<DeliveryZone> getDeliveryZones() {
+    final zones = [...MockStoreData.deliveryZones];
+    zones.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
+    return zones;
+  }
 
+  DeliveryZone? getDeliveryZoneById(String id) {
+    try {
+      return MockStoreData.deliveryZones.firstWhere((zone) => zone.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void addDeliveryZone(DeliveryZone zone) {
+    MockStoreData.deliveryZones = [
+      ...MockStoreData.deliveryZones,
+      zone,
+    ];
+    notifyListeners();
+  }
+
+  void updateDeliveryZone(String id, DeliveryZone updatedZone) {
+    final index = MockStoreData.deliveryZones.indexWhere(
+      (zone) => zone.id == id,
+    );
+
+    if (index != -1) {
+      final updatedList = [...MockStoreData.deliveryZones];
+      updatedList[index] = updatedZone;
+      MockStoreData.deliveryZones = updatedList;
+      notifyListeners();
+    }
+  }
+
+  void deleteDeliveryZone(String id) {
+    MockStoreData.deliveryZones = MockStoreData.deliveryZones
+        .where((zone) => zone.id != id)
+        .toList();
+    notifyListeners();
+  }
   List<ProductItem> getProductsByCategory(String categoryName) {
     if (categoryName == 'All') {
       return getAvailableProducts();

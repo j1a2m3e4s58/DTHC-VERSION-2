@@ -3,6 +3,7 @@ import '../models/food_item.dart';
 import '../models/food_pack.dart';
 import '../models/hero_banner_item.dart';
 import '../models/store_settings.dart';
+import '../models/delivery_zone.dart';
 
 class MockStoreData {
   static StoreSettings storeSettings = const StoreSettings(
@@ -570,7 +571,28 @@ class MockStoreData {
       isFeatured: false,
     ),
   ];
-
+    static List<DeliveryZone> deliveryZones = [
+    const DeliveryZone(
+      id: 'zone_1',
+      name: 'Accra Central',
+      fee: 15,
+    ),
+    const DeliveryZone(
+      id: 'zone_2',
+      name: 'East Legon',
+      fee: 20,
+    ),
+    const DeliveryZone(
+      id: 'zone_3',
+      name: 'Tema',
+      fee: 25,
+    ),
+    const DeliveryZone(
+      id: 'zone_4',
+      name: 'Kasoa',
+      fee: 30,
+    ),
+  ];
   static List<Map<String, dynamic>> lookbookEntries = [
     {
       'id': 'lb1',

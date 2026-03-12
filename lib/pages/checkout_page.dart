@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
 import '../data/order_controller.dart';
+import '../data/store_controller.dart';
 import '../models/customer_order.dart';
+import '../models/delivery_zone.dart';
 import '../models/order_item.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -67,9 +70,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   double _resolveDeliveryFee(CartController cartController) {
-    final estimated = cartController.estimatedTotal - cartController.subtotal;
-    if (estimated < 0) return 0;
-    return estimated;
+    return cartController.selectedDeliveryFee;
   }
 
   Future<void> _placeOrder() async {
@@ -84,6 +85,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
 
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (!cartController.hasSelectedDeliveryZone) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a delivery zone before placing order.'),
+        ),
+      );
       return;
     }
 
@@ -120,6 +130,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         createdAt: DateTime.now(),
         paymentMethod: _selectedPaymentMethod,
         trackingCode: trackingCode,
+        deliveryZoneName: cartController.selectedDeliveryZoneName,
         isNew: true,
         isDelivered: false,
       );
@@ -165,6 +176,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
+    final storeController = context.watch<StoreController>();
+    final deliveryZones = storeController.getDeliveryZones();
     final items = cartController.items;
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 800;
@@ -204,6 +217,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             const SizedBox(height: 18),
                             _buildCustomerFormCard(isMobile: true),
                             const SizedBox(height: 18),
+                            _buildDeliveryZoneCard(
+                              cartController: cartController,
+                              deliveryZones: deliveryZones,
+                              isMobile: true,
+                            ),
+                            const SizedBox(height: 18),
                             _buildPaymentMethodCard(isMobile: true),
                             const SizedBox(height: 18),
                             _buildPaymentInstructionCard(cartController, true),
@@ -221,6 +240,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   _buildTopIntro(isMobile: false),
                                   const SizedBox(height: 20),
                                   _buildCustomerFormCard(isMobile: false),
+                                  const SizedBox(height: 20),
+                                  _buildDeliveryZoneCard(
+                                    cartController: cartController,
+                                    deliveryZones: deliveryZones,
+                                    isMobile: false,
+                                  ),
                                   const SizedBox(height: 20),
                                   _buildPaymentMethodCard(isMobile: false),
                                   const SizedBox(height: 20),
@@ -403,6 +428,134 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeliveryZoneCard({
+    required CartController cartController,
+    required List<DeliveryZone> deliveryZones,
+    required bool isMobile,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.charcoal),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.local_shipping_outlined,
+                  color: AppColors.primaryBlack,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Delivery Zone',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Choose one delivery zone. The delivery fee and final total will update immediately.',
+                      style: TextStyle(
+                        color: Color(0xFFBDBDBD),
+                        fontWeight: FontWeight.w500,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          if (deliveryZones.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlack,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.charcoal),
+              ),
+              child: const Text(
+                'No delivery zones are available right now. Please contact DTHC before placing your order.',
+                style: TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+              ),
+            )
+          else
+            ...deliveryZones.map(
+              (zone) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _DeliveryZoneTile(
+                  zone: zone,
+                  isSelected:
+                      cartController.selectedDeliveryZone?.id == zone.id,
+                  onTap: () {
+                    cartController.selectDeliveryZone(zone);
+                  },
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlack,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: cartController.hasSelectedDeliveryZone
+                    ? AppColors.gold
+                    : AppColors.charcoal,
+              ),
+            ),
+            child: Text(
+              cartController.hasSelectedDeliveryZone
+                  ? 'Selected zone: ${cartController.selectedDeliveryZoneName} • GHS ${cartController.selectedDeliveryFee.toStringAsFixed(2)}'
+                  : 'No delivery zone selected yet.',
+              style: TextStyle(
+                color: cartController.hasSelectedDeliveryZone
+                    ? AppColors.gold
+                    : const Color(0xFFBDBDBD),
+                fontWeight: FontWeight.w700,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -785,6 +938,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
           _summaryTextRow('Payment', _selectedPaymentMethod),
           const SizedBox(height: 10),
+          _summaryTextRow(
+            'Delivery Zone',
+            cartController.hasSelectedDeliveryZone
+                ? cartController.selectedDeliveryZoneName
+                : 'Not selected',
+          ),
+          const SizedBox(height: 10),
           _summaryAmountRow('Subtotal', cartController.subtotal),
           const SizedBox(height: 10),
           _summaryAmountRow('Delivery Fee', _resolveDeliveryFee(cartController)),
@@ -922,6 +1082,88 @@ class _InstructionNote extends StatelessWidget {
           fontSize: 13,
           height: 1.55,
           fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _DeliveryZoneTile extends StatelessWidget {
+  final DeliveryZone zone;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DeliveryZoneTile({
+    required this.zone,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryBlack : AppColors.softBlack,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? AppColors.gold : AppColors.charcoal,
+            width: isSelected ? 1.4 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.gold
+                    : AppColors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                Icons.location_on_outlined,
+                color: isSelected ? AppColors.primaryBlack : AppColors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    zone.name,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Delivery fee: GHS ${zone.fee.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: isSelected ? AppColors.gold : AppColors.greyText,
+            ),
+          ],
         ),
       ),
     );
