@@ -1,10 +1,56 @@
+class ProductImageEntry {
+  final String imageUrl;
+  final String title;
+  final String description;
+  final double price;
+
+  const ProductImageEntry({
+    required this.imageUrl,
+    required this.title,
+    required this.description,
+    required this.price,
+  });
+
+  ProductImageEntry copyWith({
+    String? imageUrl,
+    String? title,
+    String? description,
+    double? price,
+  }) {
+    return ProductImageEntry(
+      imageUrl: imageUrl ?? this.imageUrl,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      price: price ?? this.price,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'imageUrl': imageUrl,
+      'title': title,
+      'description': description,
+      'price': price,
+    };
+  }
+
+  factory ProductImageEntry.fromMap(Map<dynamic, dynamic> map) {
+    return ProductImageEntry(
+      imageUrl: (map['imageUrl'] ?? '').toString(),
+      title: (map['title'] ?? '').toString(),
+      description: (map['description'] ?? '').toString(),
+      price: (map['price'] ?? 0).toDouble(),
+    );
+  }
+}
+
 class ProductItem {
   final String id;
   final String name;
   final String description;
   final double price;
   final String category;
-  final List<String> imageUrls;
+  final List<ProductImageEntry> imageEntries;
   final bool isAvailable;
   final bool isFeatured;
   final int stockQuantity;
@@ -18,7 +64,7 @@ class ProductItem {
     required this.description,
     required this.price,
     required this.category,
-    required this.imageUrls,
+    required this.imageEntries,
     required this.isAvailable,
     required this.isFeatured,
     required this.stockQuantity,
@@ -27,7 +73,34 @@ class ProductItem {
     this.isBestSeller = false,
   });
 
+  List<String> get imageUrls => imageEntries
+      .map((entry) => entry.imageUrl.trim())
+      .where((url) => url.isNotEmpty)
+      .toList();
+
   String get imageUrl => imageUrls.isNotEmpty ? imageUrls.first : '';
+
+  ProductImageEntry get primaryImageEntry {
+    if (imageEntries.isNotEmpty) {
+      return imageEntries.first;
+    }
+
+    return ProductImageEntry(
+      imageUrl: '',
+      title: name,
+      description: description,
+      price: price,
+    );
+  }
+
+  ProductImageEntry imageEntryAt(int index) {
+    if (imageEntries.isEmpty) {
+      return primaryImageEntry;
+    }
+
+    final safeIndex = index.clamp(0, imageEntries.length - 1);
+    return imageEntries[safeIndex];
+  }
 
   ProductItem copyWith({
     String? id,
@@ -35,7 +108,7 @@ class ProductItem {
     String? description,
     double? price,
     String? category,
-    List<String>? imageUrls,
+    List<ProductImageEntry>? imageEntries,
     bool? isAvailable,
     bool? isFeatured,
     int? stockQuantity,
@@ -49,7 +122,7 @@ class ProductItem {
       description: description ?? this.description,
       price: price ?? this.price,
       category: category ?? this.category,
-      imageUrls: imageUrls ?? this.imageUrls,
+      imageEntries: imageEntries ?? this.imageEntries,
       isAvailable: isAvailable ?? this.isAvailable,
       isFeatured: isFeatured ?? this.isFeatured,
       stockQuantity: stockQuantity ?? this.stockQuantity,

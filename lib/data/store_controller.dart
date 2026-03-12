@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/category_item.dart';
 import '../models/food_item.dart';
 import '../models/food_pack.dart';
+import '../models/hero_banner_item.dart';
 import '../models/store_settings.dart';
 import 'mock_store_data.dart';
 
@@ -15,6 +16,44 @@ class StoreController extends ChangeNotifier {
 
   StoreSettings getStoreSettings() {
     return MockStoreData.storeSettings;
+  }
+
+  List<HeroBannerItem> getHeroBanners() {
+    final items = [...MockStoreData.heroBanners];
+    items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return items.where((item) => item.isActive).toList();
+  }
+
+  List<HeroBannerItem> getAllHeroBanners() {
+    final items = [...MockStoreData.heroBanners];
+    items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return items;
+  }
+
+  HeroBannerItem? getHeroBannerById(String id) {
+    try {
+      return MockStoreData.heroBanners.firstWhere((item) => item.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void addHeroBanner(HeroBannerItem item) {
+    MockStoreData.heroBanners.add(item);
+    notifyListeners();
+  }
+
+  void updateHeroBanner(String id, HeroBannerItem updatedItem) {
+    final index = MockStoreData.heroBanners.indexWhere((item) => item.id == id);
+    if (index != -1) {
+      MockStoreData.heroBanners[index] = updatedItem;
+      notifyListeners();
+    }
+  }
+
+  void deleteHeroBanner(String id) {
+    MockStoreData.heroBanners.removeWhere((item) => item.id == id);
+    notifyListeners();
   }
 
   List<CategoryItem> getCategories() {
@@ -78,6 +117,14 @@ class StoreController extends ChangeNotifier {
         .toList();
   }
 
+  ProductItem? getProductById(String id) {
+    try {
+      return MockStoreData.foodItems.firstWhere((product) => product.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   List<CollectionModel> getCollections() {
     return [...MockStoreData.collections];
   }
@@ -88,6 +135,64 @@ class StoreController extends ChangeNotifier {
         .toList();
   }
 
+  CollectionModel? getCollectionById(String id) {
+    try {
+      return MockStoreData.collections.firstWhere(
+        (collection) => collection.id == id,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void addCollection(CollectionModel collection) {
+    MockStoreData.collections = [
+      ...MockStoreData.collections,
+      collection,
+    ];
+    notifyListeners();
+  }
+
+  void updateCollection(String id, CollectionModel updatedCollection) {
+    final index = MockStoreData.collections.indexWhere(
+      (collection) => collection.id == id,
+    );
+
+    if (index != -1) {
+      final updatedList = [...MockStoreData.collections];
+      updatedList[index] = updatedCollection;
+      MockStoreData.collections = updatedList;
+      notifyListeners();
+    }
+  }
+
+  void deleteCollection(String id) {
+    MockStoreData.collections = MockStoreData.collections
+        .where((collection) => collection.id != id)
+        .toList();
+    notifyListeners();
+  }
+
+  void toggleCollectionFeatured(String id) {
+    final index = MockStoreData.collections.indexWhere(
+      (collection) => collection.id == id,
+    );
+
+    if (index != -1) {
+      final current = MockStoreData.collections[index];
+      final updatedList = [...MockStoreData.collections];
+      updatedList[index] = CollectionModel(
+        id: current.id,
+        name: current.name,
+        description: current.description,
+        imageUrl: current.imageUrl,
+        isFeatured: !current.isFeatured,
+      );
+      MockStoreData.collections = updatedList;
+      notifyListeners();
+    }
+  }
+
   static const List<String> shopCategories = [
     'All',
     'Tees',
@@ -96,6 +201,13 @@ class StoreController extends ChangeNotifier {
     'Chains',
     'Belts',
     'Socks',
+  ];
+
+  static const List<String> lookbookTargetTypes = [
+    'collection',
+    'category',
+    'product',
+    'none',
   ];
 
   List<ProductItem> getProductsByCategory(String categoryName) {
@@ -129,7 +241,71 @@ class StoreController extends ChangeNotifier {
   }
 
   List<Map<String, dynamic>> getLookbookEntries() {
-    return List<Map<String, dynamic>>.from(MockStoreData.lookbookEntries);
+    return MockStoreData.lookbookEntries
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  }
+
+  Map<String, dynamic>? getLookbookEntryById(String id) {
+    try {
+      final entry = MockStoreData.lookbookEntries.firstWhere(
+        (item) => (item['id'] ?? '').toString() == id,
+      );
+      return Map<String, dynamic>.from(entry);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void addLookbookEntry(Map<String, dynamic> entry) {
+    MockStoreData.lookbookEntries = [
+      ...MockStoreData.lookbookEntries,
+      {
+        'id': (entry['id'] ?? '').toString(),
+        'title': (entry['title'] ?? '').toString(),
+        'subtitle': (entry['subtitle'] ?? '').toString(),
+        'imageUrl': (entry['imageUrl'] ?? '').toString(),
+        'tag': (entry['tag'] ?? '').toString(),
+        'ctaText': (entry['ctaText'] ?? '').toString(),
+        'targetType': (entry['targetType'] ?? 'none').toString(),
+        'targetValue': (entry['targetValue'] ?? '').toString(),
+      },
+    ];
+    notifyListeners();
+  }
+
+  void updateLookbookEntry(String id, Map<String, dynamic> updatedEntry) {
+    final index = MockStoreData.lookbookEntries.indexWhere(
+      (entry) => (entry['id'] ?? '').toString() == id,
+    );
+
+    if (index != -1) {
+      final updatedList = MockStoreData.lookbookEntries
+          .map((entry) => Map<String, dynamic>.from(entry))
+          .toList();
+
+      updatedList[index] = {
+        'id': id,
+        'title': (updatedEntry['title'] ?? '').toString(),
+        'subtitle': (updatedEntry['subtitle'] ?? '').toString(),
+        'imageUrl': (updatedEntry['imageUrl'] ?? '').toString(),
+        'tag': (updatedEntry['tag'] ?? '').toString(),
+        'ctaText': (updatedEntry['ctaText'] ?? '').toString(),
+        'targetType': (updatedEntry['targetType'] ?? 'none').toString(),
+        'targetValue': (updatedEntry['targetValue'] ?? '').toString(),
+      };
+
+      MockStoreData.lookbookEntries = updatedList;
+      notifyListeners();
+    }
+  }
+
+  void deleteLookbookEntry(String id) {
+    MockStoreData.lookbookEntries = MockStoreData.lookbookEntries
+        .where((entry) => (entry['id'] ?? '').toString() != id)
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+    notifyListeners();
   }
 
   List<Map<String, dynamic>> getPaymentMethods() {

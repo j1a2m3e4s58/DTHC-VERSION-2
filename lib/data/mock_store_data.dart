@@ -1,6 +1,7 @@
 import '../models/category_item.dart';
 import '../models/food_item.dart';
 import '../models/food_pack.dart';
+import '../models/hero_banner_item.dart';
 import '../models/store_settings.dart';
 
 class MockStoreData {
@@ -21,6 +22,45 @@ class MockStoreData {
     twitter: '@dthcwear',
     tiktok: '@driptoohardcollections',
   );
+
+  static List<HeroBannerItem> heroBanners = const [
+    HeroBannerItem(
+      id: 'hero_1',
+      title: 'Streetwear That Speaks Before You Do',
+      subtitle:
+          'Premium tees, sneakers, caps, chains, belts, and socks built for bold fits and everyday drip.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=80',
+      ctaText: 'Shop This Drop',
+      targetProductId: '9',
+      isActive: true,
+      sortOrder: 1,
+    ),
+    HeroBannerItem(
+      id: 'hero_2',
+      title: 'Luxury Street Energy',
+      subtitle:
+          'Curated statement pieces with premium styling, sharp layering, and standout fashion attitude.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1600&q=80',
+      ctaText: 'Explore Collection',
+      targetProductId: '2',
+      isActive: true,
+      sortOrder: 2,
+    ),
+    HeroBannerItem(
+      id: 'hero_3',
+      title: 'Built For Motion',
+      subtitle:
+          'Sneaker-led looks and sharp essentials designed for clean movement and city confidence.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1600&q=80',
+      ctaText: 'View Sneakers',
+      targetProductId: '3',
+      isActive: true,
+      sortOrder: 3,
+    ),
+  ];
 
   static List<CategoryItem> categories = const [
     CategoryItem(
@@ -88,7 +128,7 @@ class MockStoreData {
     ),
   ];
 
-    static List<ProductItem> foodItems = [
+  static List<ProductItem> foodItems = [
     const ProductItem(
       id: '1',
       name: 'DTHC Oversized Logo Tee',
@@ -96,10 +136,31 @@ class MockStoreData {
           'Premium oversized streetwear tee with a bold front logo and soft heavyweight cotton feel.',
       price: 120,
       category: 'Tees',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
+          title: 'Oversized Logo Tee - Front Drop',
+          description:
+              'Heavyweight cotton tee with a bold front-facing DTHC identity and relaxed premium silhouette.',
+          price: 120,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
+          title: 'Oversized Logo Tee - Street Fit View',
+          description:
+              'Styled loose for layered city fits with a sharper streetwear attitude.',
+          price: 125,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
+          title: 'Oversized Logo Tee - Premium Graphic Mood',
+          description:
+              'Statement-ready version built for standout everyday drip and clean accessories.',
+          price: 130,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -115,9 +176,23 @@ class MockStoreData {
           'Clean black tee designed for everyday drip, relaxed fits, and layered streetwear looks.',
       price: 135,
       category: 'Tees',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
+          title: 'Midnight Statement Tee - Core Black',
+          description:
+              'A clean black premium tee made for minimal, sharp, night-ready styling.',
+          price: 135,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+          title: 'Midnight Statement Tee - Elevated Layering',
+          description:
+              'Relaxed streetwear energy for layered fits and understated luxury.',
+          price: 140,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -133,9 +208,23 @@ class MockStoreData {
           'Sharp low-top sneakers built for clean movement, comfort, and standout city style.',
       price: 320,
       category: 'Sneakers',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80',
+          title: 'Street Runner Sneakers - Velocity Red',
+          description:
+              'Bold low-top sneakers for standout movement, high visibility, and premium street rotation.',
+          price: 320,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1200&q=80',
+          title: 'Street Runner Sneakers - Clean Motion White',
+          description:
+              'A cleaner rotation built for luxury casual fits and smooth everyday wear.',
+          price: 335,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -151,9 +240,23 @@ class MockStoreData {
           'Minimal luxury sneakers with a fresh white finish for premium casual fits.',
       price: 295,
       category: 'Sneakers',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=1200&q=80',
+          title: 'White Heat Sneakers - Pure White',
+          description:
+              'Luxury white sneakers with a polished finish for premium casual dressing.',
+          price: 295,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80',
+          title: 'White Heat Sneakers - Contrast Edge',
+          description:
+              'A more aggressive sneaker mood for street-ready styling and sharper contrast.',
+          price: 305,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -169,9 +272,23 @@ class MockStoreData {
           'Structured cap with embroidered DTHC identity for everyday streetwear styling.',
       price: 85,
       category: 'Caps',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80',
+          title: 'Signature Snapback - Core Logo',
+          description:
+              'A structured logo cap built for everyday premium streetwear fits.',
+          price: 85,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+          title: 'Signature Snapback - Editorial Style',
+          description:
+              'A more fashion-forward cap mood for elevated styling and clean accessories.',
+          price: 90,
+        ),
       ],
       isAvailable: true,
       isFeatured: false,
@@ -187,9 +304,23 @@ class MockStoreData {
           'Fashion chain accessory made to elevate simple tees, open shirts, and clean fit combos.',
       price: 110,
       category: 'Chains',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80',
+          title: 'Gold Layer Chain - Hero Shine',
+          description:
+              'A polished layered chain for premium neckwear styling and clean standout detail.',
+          price: 110,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+          title: 'Gold Layer Chain - Styled Luxury View',
+          description:
+              'Built to elevate simple tops, open shirts, and upscale streetwear combinations.',
+          price: 118,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -205,9 +336,23 @@ class MockStoreData {
           'Premium belt piece with a clean buckle finish to complete elevated streetwear looks.',
       price: 95,
       category: 'Belts',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1624222247344-550fb60583dc?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1624222247344-550fb60583dc?auto=format&fit=crop&w=1200&q=80',
+          title: 'Leather Belt - Classic Buckle',
+          description:
+              'A clean premium leather belt with a refined buckle for polished styling.',
+          price: 95,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+          title: 'Leather Belt - Luxury Street Pairing',
+          description:
+              'Designed to finish elevated denim, trousers, and upscale streetwear fits.',
+          price: 102,
+        ),
       ],
       isAvailable: true,
       isFeatured: false,
@@ -223,9 +368,23 @@ class MockStoreData {
           'Soft high-rise socks with a clean sporty look for sneakers, shorts, and stacked fits.',
       price: 45,
       category: 'Socks',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=1200&q=80',
+          title: 'Street Essential Socks - Clean Pair',
+          description:
+              'Soft sport-inspired socks for low-top sneakers, shorts, and easy daily wear.',
+          price: 45,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=80',
+          title: 'Street Essential Socks - Stack Fit Edition',
+          description:
+              'Made for layered sneaker fits and stronger sporty streetwear presentation.',
+          price: 50,
+        ),
       ],
       isAvailable: true,
       isFeatured: false,
@@ -241,9 +400,23 @@ class MockStoreData {
           'Bold graphic tee for statement styling, layered fits, and standout everyday wear.',
       price: 140,
       category: 'Tees',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
+          title: 'Graphic Drop Tee - Street Poster Look',
+          description:
+              'A bold visual tee made for statement dressing and louder everyday streetwear.',
+          price: 140,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
+          title: 'Graphic Drop Tee - Clean Front Edition',
+          description:
+              'A slightly cleaner take for balanced styling with caps, chains, and layered pieces.',
+          price: 145,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -259,9 +432,23 @@ class MockStoreData {
           'Premium cap with a neat silhouette built for polished casual and urban outfits.',
       price: 90,
       category: 'Caps',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+          title: 'Luxury Street Cap - Polished Fit',
+          description:
+              'A premium cap silhouette for polished casual wear and urban luxury moods.',
+          price: 90,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=1200&q=80',
+          title: 'Luxury Street Cap - Everyday Rotation',
+          description:
+              'A more relaxed daily styling version that still keeps the premium DTHC edge.',
+          price: 94,
+        ),
       ],
       isAvailable: true,
       isFeatured: true,
@@ -277,9 +464,23 @@ class MockStoreData {
           'Heavy cotton black tee with a strong fit and elevated night-style streetwear energy.',
       price: 145,
       category: 'Tees',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
+          title: 'After Dark Premium Tee - Night Mode',
+          description:
+              'Heavy cotton black tee built for confident night styling and premium energy.',
+          price: 145,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
+          title: 'After Dark Premium Tee - Relaxed Shadow Fit',
+          description:
+              'A looser luxury streetwear mood for darker layered rotations.',
+          price: 150,
+        ),
       ],
       isAvailable: true,
       isFeatured: false,
@@ -295,9 +496,23 @@ class MockStoreData {
           'Sport-inspired fashion socks built to pair well with clean sneaker rotations.',
       price: 55,
       category: 'Socks',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=1200&q=80',
+      imageEntries: [
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1200&q=80',
+          title: 'Urban Motion Socks Set - Performance Look',
+          description:
+              'Sport-inspired fashion socks made for cleaner sneaker rotations and movement.',
+          price: 55,
+        ),
+        ProductImageEntry(
+          imageUrl:
+              'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=1200&q=80',
+          title: 'Urban Motion Socks Set - Everyday Pair',
+          description:
+              'A softer daily option for sneakers, shorts, and premium casual layering.',
+          price: 60,
+        ),
       ],
       isAvailable: true,
       isFeatured: false,
@@ -356,7 +571,7 @@ class MockStoreData {
     ),
   ];
 
-  static const List<Map<String, dynamic>> lookbookEntries = [
+  static List<Map<String, dynamic>> lookbookEntries = [
     {
       'id': 'lb1',
       'title': 'Downtown Layered Fit',
@@ -364,6 +579,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
       'tag': 'City Edit',
+      'ctaText': 'Shop This Mood',
+      'targetType': 'collection',
+      'targetValue': 'Street Kings',
     },
     {
       'id': 'lb2',
@@ -372,6 +590,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80',
       'tag': 'Night Code',
+      'ctaText': 'Shop Night Code',
+      'targetType': 'collection',
+      'targetValue': 'Night Code',
     },
     {
       'id': 'lb3',
@@ -380,6 +601,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80',
       'tag': 'Weekend Heat',
+      'ctaText': 'Shop Featured Tees',
+      'targetType': 'category',
+      'targetValue': 'Tees',
     },
     {
       'id': 'lb4',
@@ -388,6 +612,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
       'tag': 'Luxury Street',
+      'ctaText': 'Shop Luxury Street',
+      'targetType': 'collection',
+      'targetValue': 'Luxury Street',
     },
     {
       'id': 'lb5',
@@ -396,6 +623,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80',
       'tag': 'Urban Motion',
+      'ctaText': 'Shop Urban Motion',
+      'targetType': 'collection',
+      'targetValue': 'Urban Motion',
     },
     {
       'id': 'lb6',
@@ -404,6 +634,9 @@ class MockStoreData {
       'imageUrl':
           'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80',
       'tag': 'Essentials',
+      'ctaText': 'Shop Essentials Drop',
+      'targetType': 'collection',
+      'targetValue': 'Essentials Drop',
     },
   ];
 

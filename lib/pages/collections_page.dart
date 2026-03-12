@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'lookbook_page.dart';
-import 'payment_delivery_page.dart';
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
 import '../models/food_item.dart';
@@ -11,7 +9,10 @@ import '../widgets/custom_navbar.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'home_page.dart';
+import 'lookbook_page.dart';
 import 'menu_page.dart';
+import 'payment_delivery_page.dart';
+import 'track_order_page.dart';
 
 class CollectionsPage extends StatelessWidget {
   const CollectionsPage({super.key});
@@ -29,19 +30,24 @@ class CollectionsPage extends StatelessWidget {
           children: [
             _buildNavbar(context),
             const _CollectionsHeroSection(),
-            if (featuredCollections.isNotEmpty)
+            if (allCollections.isEmpty)
+              const _CollectionsEmptyState()
+            else ...[
+              if (featuredCollections.isNotEmpty)
+                _CollectionsGridSection(
+                  title: 'Featured Collections',
+                  subtitle:
+                      'Explore DTHC curated drops built for premium streetwear energy and bold styling.',
+                  collections: featuredCollections,
+                ),
               _CollectionsGridSection(
-                title: 'Featured Collections',
+                title:
+                    featuredCollections.isNotEmpty ? 'All Collections' : 'Collections',
                 subtitle:
-                    'Explore DTHC curated drops built for premium streetwear energy and bold styling.',
-                collections: featuredCollections,
+                    'From essentials to statement pieces, each collection gives shoppers a different style mood.',
+                collections: allCollections,
               ),
-            _CollectionsGridSection(
-              title: 'All Collections',
-              subtitle:
-                  'From essentials to statement pieces, each collection gives shoppers a different style mood.',
-              collections: allCollections,
-            ),
+            ],
             const SizedBox(height: 28),
           ],
         ),
@@ -94,6 +100,12 @@ class CollectionsPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const MenuPage()),
+        );
+      },
+      onTrackOrderTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TrackOrderPage()),
         );
       },
       onAdminTap: () {
@@ -222,12 +234,8 @@ class CollectionProductsPage extends StatelessWidget {
                                 label: const Text('Back to Collections'),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.white,
-                                  side: const BorderSide(
-                                    color: AppColors.charcoal,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                  side: const BorderSide(color: AppColors.charcoal),
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -242,7 +250,9 @@ class CollectionProductsPage extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const MenuPage(),
+                                      builder: (_) => MenuPage(
+                                        collectionFilter: collection.name,
+                                      ),
                                     ),
                                   );
                                 },
@@ -252,9 +262,7 @@ class CollectionProductsPage extends StatelessWidget {
                                   backgroundColor: AppColors.gold,
                                   foregroundColor: AppColors.primaryBlack,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -274,12 +282,8 @@ class CollectionProductsPage extends StatelessWidget {
                                 label: const Text('Back to Collections'),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.white,
-                                  side: const BorderSide(
-                                    color: AppColors.charcoal,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                  side: const BorderSide(color: AppColors.charcoal),
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -293,7 +297,9 @@ class CollectionProductsPage extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const MenuPage(),
+                                      builder: (_) => MenuPage(
+                                        collectionFilter: collection.name,
+                                      ),
                                     ),
                                   );
                                 },
@@ -303,9 +309,7 @@ class CollectionProductsPage extends StatelessWidget {
                                   backgroundColor: AppColors.gold,
                                   foregroundColor: AppColors.primaryBlack,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -338,9 +342,9 @@ class CollectionProductsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(
+                      const Text(
                         'Browse every piece currently grouped under this collection.',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFFBDBDBD),
                           fontSize: 15,
                           height: 1.6,
@@ -454,6 +458,12 @@ class CollectionProductsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const MenuPage()),
         );
       },
+      onTrackOrderTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TrackOrderPage()),
+        );
+      },
       onAdminTap: () {
         Navigator.push(
           context,
@@ -534,6 +544,102 @@ class _CollectionsHeroSection extends StatelessWidget {
                       ),
                     ],
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CollectionsEmptyState extends StatelessWidget {
+  const _CollectionsEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 16 : 32,
+        vertical: 12,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 20 : 28),
+            decoration: BoxDecoration(
+              color: AppColors.softBlack,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: AppColors.charcoal),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  height: 68,
+                  width: 68,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.grid_view_rounded,
+                    color: AppColors.primaryBlack,
+                    size: 34,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'No collections available yet',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Create collections from the admin panel to organize DTHC drops and give shoppers a more premium browsing experience.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 15,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminDashboardPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.primaryBlack,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  label: const Text(
+                    'Open Admin',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -702,72 +808,78 @@ class _CollectionsGridSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<StoreController>();
-    final width = MediaQuery.of(context).size.width;
-
-    double cardWidth;
-    if (width > 1100) {
-      cardWidth = (1280 - 36) / 3;
-    } else if (width > 700) {
-      cardWidth = (width - 64 - 18) / 2;
-    } else {
-      cardWidth = width - 32;
-    }
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
         vertical: 18,
       ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: width < 768 ? 24 : 30,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: Color(0xFFBDBDBD),
-                  fontSize: 15,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 18,
-                runSpacing: 18,
-                children: collections.map((collection) {
-                  final products = controller.getProductsByCollection(
-                    collection.name,
-                  );
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
 
-                  return SizedBox(
-                    width: cardWidth,
-                    child: _CollectionCard(
-                      collection: collection,
-                      products: products,
+              double cardWidth;
+              if (width >= 1180) {
+                cardWidth = (width - 36) / 3;
+              } else if (width >= 760) {
+                cardWidth = (width - 18) / 2;
+              } else {
+                cardWidth = width;
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: width < 768 ? 24 : 30,
+                      fontWeight: FontWeight.w900,
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-            ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontSize: 15,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Wrap(
+                    spacing: 18,
+                    runSpacing: 18,
+                    children: collections.map((collection) {
+                      final products = controller.getProductsByCollection(
+                        collection.name,
+                      );
+
+                      return SizedBox(
+                        width: cardWidth,
+                        child: _CollectionCard(
+                          collection: collection,
+                          products: products,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 }
+
 class _CollectionCard extends StatelessWidget {
   final CollectionModel collection;
   final List<ProductItem> products;
@@ -797,7 +909,6 @@ class _CollectionCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _CollectionImage(
@@ -812,7 +923,6 @@ class _CollectionCard extends StatelessWidget {
               isMobile ? 14 : 18,
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Wrap(
@@ -909,8 +1019,8 @@ class _CollectionCard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => CollectionProductsPage(
-                            collection: collection,
+                          builder: (_) => MenuPage(
+                            collectionFilter: collection.name,
                           ),
                         ),
                       );
@@ -938,6 +1048,7 @@ class _CollectionCard extends StatelessWidget {
     );
   }
 }
+
 class _CollectionDetailText extends StatelessWidget {
   final CollectionModel collection;
   final int productsCount;
@@ -1334,7 +1445,9 @@ class _CollectionDetailProductCard extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const MenuPage(),
+                                  builder: (_) => MenuPage(
+                                    collectionFilter: collectionName,
+                                  ),
                                 ),
                               );
                             },
@@ -1342,9 +1455,7 @@ class _CollectionDetailProductCard extends StatelessWidget {
                               backgroundColor: AppColors.gold,
                               foregroundColor: AppColors.primaryBlack,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 11,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
@@ -1378,7 +1489,9 @@ class _CollectionDetailProductCard extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const MenuPage(),
+                                builder: (_) => MenuPage(
+                                  collectionFilter: collectionName,
+                                ),
                               ),
                             );
                           },
@@ -1520,25 +1633,6 @@ class _ResponsiveGridConfig {
     required this.crossAxisCount,
     required this.childAspectRatio,
   });
-
-  factory _ResponsiveGridConfig.forCollections(double width) {
-    if (width >= 1180) {
-      return const _ResponsiveGridConfig(
-        crossAxisCount: 3,
-        childAspectRatio: 0.68,
-      );
-    }
-    if (width >= 760) {
-      return const _ResponsiveGridConfig(
-        crossAxisCount: 2,
-        childAspectRatio: 0.74,
-      );
-    }
-    return const _ResponsiveGridConfig(
-      crossAxisCount: 1,
-      childAspectRatio: 0.90,
-    );
-  }
 
   factory _ResponsiveGridConfig.forProducts(double width) {
     if (width >= 1180) {

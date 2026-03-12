@@ -65,6 +65,8 @@ class OrderController extends ChangeNotifier {
       deliveryFee: order.deliveryFee,
       total: order.total,
       createdAt: order.createdAt,
+      paymentMethod: order.paymentMethod,
+      trackingCode: order.trackingCode,
       isNew: order.isNew,
       isDelivered: order.isDelivered,
     );

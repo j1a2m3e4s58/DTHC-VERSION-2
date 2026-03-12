@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../data/order_controller.dart';
 import '../../models/customer_order.dart';
+import '../../models/order_item.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   const AdminOrdersPage({super.key});
@@ -79,7 +80,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 1280),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -626,68 +627,43 @@ class _PremiumOrderCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _InfoSection(
+            title: 'Order Meta',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoLine(
+                  icon: Icons.payments_outlined,
+                  text: order.paymentMethod,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.local_shipping_outlined,
+                  text: order.trackingCode.isEmpty
+                      ? 'Tracking code not assigned'
+                      : order.trackingCode,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.receipt_long_outlined,
+                  text: 'Order ID: ${order.id}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _InfoSection(
             title: 'Ordered Items',
             child: Column(
-              children: order.items.map((item) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlack,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.charcoal),
+              children: List.generate(order.items.length, (index) {
+                final item = order.items[index];
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == order.items.length - 1 ? 0 : 12,
                   ),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          height: 56,
-                          width: 56,
-                          color: AppColors.charcoal,
-                          child: item.imageUrl.trim().isNotEmpty
-                              ? Image.network(
-                                  item.imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.shopping_bag_outlined,
-                                      color: AppColors.gold,
-                                    );
-                                  },
-                                )
-                              : const Icon(
-                                  Icons.shopping_bag_outlined,
-                                  color: AppColors.gold,
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          '${item.name} x${item.quantity}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Flexible(
-                        child: Text(
-                          'GHS ${item.totalPrice.toStringAsFixed(2)}',
-                          textAlign: TextAlign.right,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.gold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _OrderedItemCard(item: item),
                 );
-              }).toList(),
+              }),
             ),
           ),
           const SizedBox(height: 18),
@@ -704,6 +680,14 @@ class _PremiumOrderCard extends StatelessWidget {
                 _AmountRow('Subtotal', order.subtotal),
                 const SizedBox(height: 10),
                 _AmountRow('Delivery', order.deliveryFee),
+                const SizedBox(height: 10),
+                _TextRow('Payment Method', order.paymentMethod),
+                const SizedBox(height: 10),
+                _TextRow(
+                  'Tracking Code',
+                  order.trackingCode.isEmpty ? 'Not assigned' : order.trackingCode,
+                  highlightGold: order.trackingCode.isNotEmpty,
+                ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Divider(color: AppColors.charcoal),
@@ -718,6 +702,293 @@ class _PremiumOrderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OrderedItemCard extends StatelessWidget {
+  final OrderItem item;
+
+  const _OrderedItemCard({
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 700;
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderedItemImage(item: item, isMobile: true),
+                const SizedBox(height: 12),
+                _OrderedItemDetails(item: item, isMobile: true),
+                const SizedBox(height: 12),
+                _OrderedItemFooter(item: item, isMobile: true),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderedItemImage(item: item, isMobile: false),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _OrderedItemDetails(item: item, isMobile: false),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: 170,
+                  child: _OrderedItemFooter(item: item, isMobile: false),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _OrderedItemImage extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemImage({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = isMobile ? double.infinity : 150;
+    final double height = isMobile ? 200 : 150;
+    final imageUrl = item.imageUrl.trim();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: const BoxDecoration(
+          gradient: AppColors.heroGradient,
+        ),
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _OrderedItemFallback(isMobile: isMobile);
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return _OrderedItemLoader(isMobile: isMobile);
+                },
+              )
+            : _OrderedItemFallback(isMobile: isMobile),
+      ),
+    );
+  }
+}
+
+class _OrderedItemLoader extends StatelessWidget {
+  final bool isMobile;
+
+  const _OrderedItemLoader({
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: isMobile ? 28 : 30,
+        height: isMobile ? 28 : 30,
+        child: const CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: AppColors.gold,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderedItemFallback extends StatelessWidget {
+  final bool isMobile;
+
+  const _OrderedItemFallback({
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.shopping_bag_outlined,
+        size: isMobile ? 42 : 46,
+        color: AppColors.gold,
+      ),
+    );
+  }
+}
+
+class _OrderedItemDetails extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemDetails({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _OrderedItemBadge(
+              label: 'Qty ${item.quantity}',
+              isGold: true,
+            ),
+            _OrderedItemBadge(
+              label: 'Ordered',
+              isGold: false,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          item.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: isMobile ? 17 : 19,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Unit Price: GHS ${item.price.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: isMobile ? 13 : 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.gold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.softBlack,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.charcoal),
+          ),
+          child: Text(
+            'This item was included in the customer order and is shown here for admin review.',
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
+              height: 1.5,
+              color: const Color(0xFFBDBDBD),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderedItemFooter extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemFooter({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isMobile ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        children: [
+          Text(
+            'Item Total',
+            style: TextStyle(
+              fontSize: isMobile ? 11.5 : 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greyText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'GHS ${item.totalPrice.toStringAsFixed(2)}',
+            textAlign: isMobile ? TextAlign.left : TextAlign.right,
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.gold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderedItemBadge extends StatelessWidget {
+  final String label;
+  final bool isGold;
+
+  const _OrderedItemBadge({
+    required this.label,
+    required this.isGold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isGold
+            ? AppColors.gold.withValues(alpha: 0.12)
+            : AppColors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: isGold
+              ? AppColors.gold.withValues(alpha: 0.20)
+              : AppColors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: isGold ? AppColors.gold : AppColors.white,
+        ),
       ),
     );
   }
@@ -983,8 +1254,9 @@ class _AmountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountColor =
-        isTotal ? (highlightGold ? AppColors.gold : AppColors.white) : AppColors.white;
+    final amountColor = isTotal
+        ? (highlightGold ? AppColors.gold : AppColors.white)
+        : AppColors.white;
 
     return Row(
       children: [
@@ -1005,6 +1277,49 @@ class _AmountRow extends StatelessWidget {
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.w900 : FontWeight.w700,
             color: amountColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TextRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool highlightGold;
+
+  const _TextRow(
+    this.label,
+    this.value, {
+    this.highlightGold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: highlightGold ? AppColors.gold : AppColors.white,
+            ),
           ),
         ),
       ],

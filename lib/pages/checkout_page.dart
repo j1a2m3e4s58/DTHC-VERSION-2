@@ -23,6 +23,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final TextEditingController noteController = TextEditingController();
 
   bool _isSubmitting = false;
+  String _selectedPaymentMethod = 'Mobile Money';
+
+  static const List<_PaymentMethodOption> _paymentOptions = [
+    _PaymentMethodOption(
+      title: 'Mobile Money',
+      subtitle: 'Fast and convenient for Ghana customers.',
+      icon: Icons.phone_android_rounded,
+    ),
+    _PaymentMethodOption(
+      title: 'Card Payment',
+      subtitle: 'Use a supported debit or bank card.',
+      icon: Icons.credit_card_rounded,
+    ),
+    _PaymentMethodOption(
+      title: 'Pay on Delivery',
+      subtitle: 'Available only where DTHC confirms it first.',
+      icon: Icons.local_shipping_outlined,
+    ),
+  ];
 
   @override
   void dispose() {
@@ -31,6 +50,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
     addressController.dispose();
     noteController.dispose();
     super.dispose();
+  }
+
+  String _generateTrackingCode() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final suffix =
+        timestamp.length >= 6 ? timestamp.substring(timestamp.length - 6) : timestamp;
+    return 'DTHC-$suffix';
   }
 
   Future<void> _placeOrder() async {
@@ -65,6 +91,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         );
       }).toList();
 
+      final trackingCode = _generateTrackingCode();
+
       final order = CustomerOrder(
         id: '',
         customerName: nameController.text.trim(),
@@ -76,6 +104,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryFee: 0,
         total: cartController.estimatedTotal,
         createdAt: DateTime.now(),
+        paymentMethod: _selectedPaymentMethod,
+        trackingCode: trackingCode,
         isNew: true,
         isDelivered: false,
       );
@@ -101,12 +131,48 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            content: const Text(
-              'Your order has been placed successfully. DTHC will contact you to confirm delivery details and final delivery cost.',
-              style: TextStyle(
-                color: Color(0xFFBDBDBD),
-                height: 1.5,
-              ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Your order has been placed successfully. DTHC will contact you to confirm delivery details and final delivery cost.',
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlack,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.charcoal),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payment Method: $_selectedPaymentMethod',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tracking Code: $trackingCode',
+                        style: const TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
@@ -182,6 +248,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             const SizedBox(height: 18),
                             _buildCustomerFormCard(isMobile: true),
                             const SizedBox(height: 18),
+                            _buildPaymentMethodCard(isMobile: true),
+                            const SizedBox(height: 18),
                             _buildOrderSummaryCard(cartController, true),
                           ],
                         )
@@ -195,6 +263,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   _buildTopIntro(isMobile: false),
                                   const SizedBox(height: 20),
                                   _buildCustomerFormCard(isMobile: false),
+                                  const SizedBox(height: 20),
+                                  _buildPaymentMethodCard(isMobile: false),
                                 ],
                               ),
                             ),
@@ -374,6 +444,64 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  Widget _buildPaymentMethodCard({required bool isMobile}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AppColors.charcoal),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Payment Method',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Choose how the customer will complete payment for this order.',
+            style: TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 18),
+          ..._paymentOptions.map(
+            (option) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _PaymentMethodTile(
+                title: option.title,
+                subtitle: option.subtitle,
+                icon: option.icon,
+                isSelected: _selectedPaymentMethod == option.title,
+                onTap: () {
+                  setState(() {
+                    _selectedPaymentMethod = option.title;
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildField({
     required TextEditingController controller,
     required String label,
@@ -525,6 +653,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: AppColors.charcoal),
           ),
+          _summaryTextRow('Payment', _selectedPaymentMethod),
+          const SizedBox(height: 10),
           _summaryAmountRow('Subtotal', cartController.subtotal),
           const SizedBox(height: 10),
           _summaryTextRow('Delivery', cartController.deliveryFeeLabel),
@@ -620,15 +750,116 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         ),
         const SizedBox(width: 12),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
-            fontSize: isBold ? 18 : 14,
-            color: isBold ? AppColors.gold : AppColors.white,
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
+              fontSize: isBold ? 18 : 14,
+              color: isBold ? AppColors.gold : AppColors.white,
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PaymentMethodOption {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  const _PaymentMethodOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+}
+
+class _PaymentMethodTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _PaymentMethodTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryBlack : AppColors.softBlack,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? AppColors.gold : AppColors.charcoal,
+            width: isSelected ? 1.4 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.gold
+                    : AppColors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.primaryBlack : AppColors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: isSelected ? AppColors.gold : AppColors.greyText,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

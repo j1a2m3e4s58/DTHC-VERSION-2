@@ -45,12 +45,31 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
     final stockController =
         TextEditingController(text: product?.stockQuantity.toString() ?? '');
 
-    final List<TextEditingController> imageControllers =
-        (product?.imageUrls.isNotEmpty ?? false)
-            ? product!.imageUrls
-                .map((url) => TextEditingController(text: url))
+    final List<_ImageEntryFormGroup> imageGroups =
+        (product?.imageEntries.isNotEmpty ?? false)
+            ? product!.imageEntries
+                .map(
+                  (entry) => _ImageEntryFormGroup(
+                    imageUrlController:
+                        TextEditingController(text: entry.imageUrl),
+                    titleController: TextEditingController(text: entry.title),
+                    descriptionController:
+                        TextEditingController(text: entry.description),
+                    priceController:
+                        TextEditingController(text: entry.price.toString()),
+                  ),
+                )
                 .toList()
-            : [TextEditingController()];
+            : [
+                _ImageEntryFormGroup(
+                  imageUrlController: TextEditingController(),
+                  titleController: TextEditingController(text: product?.name ?? ''),
+                  descriptionController:
+                      TextEditingController(text: product?.description ?? ''),
+                  priceController:
+                      TextEditingController(text: product?.price.toString() ?? ''),
+                ),
+              ];
 
     String selectedCategory =
         product?.category ?? StoreController.shopCategories[1];
@@ -66,6 +85,24 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, dialogSetState) {
+            void addImageGroup() {
+              dialogSetState(() {
+                imageGroups.add(
+                  _ImageEntryFormGroup(
+                    imageUrlController: TextEditingController(),
+                    titleController:
+                        TextEditingController(text: nameController.text.trim()),
+                    descriptionController: TextEditingController(
+                      text: descriptionController.text.trim(),
+                    ),
+                    priceController: TextEditingController(
+                      text: priceController.text.trim(),
+                    ),
+                  ),
+                );
+              });
+            }
+
             return AlertDialog(
               backgroundColor: AppColors.softBlack,
               title: Text(
@@ -77,24 +114,24 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
               ),
               content: SingleChildScrollView(
                 child: SizedBox(
-                  width: 460,
+                  width: 560,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildField(
                         controller: nameController,
-                        label: 'Product Name',
+                        label: 'Base Product Name',
                       ),
                       const SizedBox(height: 12),
                       _buildField(
                         controller: descriptionController,
-                        label: 'Description',
+                        label: 'Base Description',
                         maxLines: 3,
                       ),
                       const SizedBox(height: 12),
                       _buildField(
                         controller: priceController,
-                        label: 'Price',
+                        label: 'Base Price',
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
@@ -150,80 +187,99 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                         label: 'Stock Quantity',
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 16),
-
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'Product Images',
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Image Entries',
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.gold,
-                                side: const BorderSide(
-                                  color: AppColors.gold,
-                                ),
-                              ),
-                              onPressed: () {
-                                dialogSetState(() {
-                                  imageControllers.add(
-                                    TextEditingController(),
-                                  );
-                                });
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Image'),
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.gold,
+                              side: const BorderSide(color: AppColors.gold),
                             ),
-                          ],
-                        ),
+                            onPressed: addImageGroup,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add Entry'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
+                      ...List.generate(imageGroups.length, (index) {
+                        final group = imageGroups[index];
 
-                      ...List.generate(imageControllers.length, (index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryBlack,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: AppColors.charcoal),
+                          ),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: _buildField(
-                                  controller: imageControllers[index],
-                                  label: 'Image URL ${index + 1}',
+                              Row(
+                                children: [
+                                  Text(
+                                    'Entry ${index + 1}',
+                                    style: const TextStyle(
+                                      color: AppColors.white,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (imageGroups.length > 1)
+                                    IconButton(
+                                      onPressed: () {
+                                        dialogSetState(() {
+                                          group.dispose();
+                                          imageGroups.removeAt(index);
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _buildField(
+                                controller: group.imageUrlController,
+                                label: 'Image URL',
+                              ),
+                              const SizedBox(height: 10),
+                              _buildField(
+                                controller: group.titleController,
+                                label: 'Image-specific Title',
+                              ),
+                              const SizedBox(height: 10),
+                              _buildField(
+                                controller: group.descriptionController,
+                                label: 'Image-specific Description',
+                                maxLines: 3,
+                              ),
+                              const SizedBox(height: 10),
+                              _buildField(
+                                controller: group.priceController,
+                                label: 'Image-specific Price',
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                  decimal: true,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              if (imageControllers.length > 1)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      dialogSetState(() {
-                                        imageControllers[index].dispose();
-                                        imageControllers.removeAt(index);
-                                      });
-                                    },
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: AppColors.white,
-                                    ),
-                                    tooltip: 'Remove image',
-                                  ),
-                                ),
                             ],
                           ),
                         );
                       }),
-
-                      const SizedBox(height: 8),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text(
@@ -287,8 +343,12 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    for (final controller in imageControllers) {
-                      controller.dispose();
+                    nameController.dispose();
+                    descriptionController.dispose();
+                    priceController.dispose();
+                    stockController.dispose();
+                    for (final group in imageGroups) {
+                      group.dispose();
                     }
                     Navigator.pop(context);
                   },
@@ -310,20 +370,49 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                     final stock =
                         int.tryParse(stockController.text.trim()) ?? 0;
 
-                    final imageUrls = imageControllers
-                        .map((controller) => controller.text.trim())
-                        .where((url) => url.isNotEmpty)
-                        .toList();
+                    final imageEntries = <ProductImageEntry>[];
+
+                    for (final group in imageGroups) {
+                      final imageUrl = group.imageUrlController.text.trim();
+                      final entryTitle = group.titleController.text.trim();
+                      final entryDescription =
+                          group.descriptionController.text.trim();
+                      final entryPrice =
+                          double.tryParse(group.priceController.text.trim()) ?? 0;
+
+                      if (imageUrl.isEmpty ||
+                          entryTitle.isEmpty ||
+                          entryDescription.isEmpty ||
+                          entryPrice <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Each image entry must have image URL, title, description, and valid price.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      imageEntries.add(
+                        ProductImageEntry(
+                          imageUrl: imageUrl,
+                          title: entryTitle,
+                          description: entryDescription,
+                          price: entryPrice,
+                        ),
+                      );
+                    }
 
                     if (name.isEmpty ||
                         description.isEmpty ||
                         price <= 0 ||
                         stock < 0 ||
-                        imageUrls.isEmpty) {
+                        imageEntries.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Please fill all fields correctly and add at least one image.',
+                            'Please fill all product fields correctly and add at least one image entry.',
                           ),
                         ),
                       );
@@ -337,7 +426,7 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                       description: description,
                       price: price,
                       category: selectedCategory,
-                      imageUrls: imageUrls,
+                      imageEntries: imageEntries,
                       isAvailable: isAvailable,
                       isFeatured: isFeatured,
                       stockQuantity: stock,
@@ -352,8 +441,12 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                       controller.updateProductItem(product.id, item);
                     }
 
-                    for (final controller in imageControllers) {
-                      controller.dispose();
+                    nameController.dispose();
+                    descriptionController.dispose();
+                    priceController.dispose();
+                    stockController.dispose();
+                    for (final group in imageGroups) {
+                      group.dispose();
                     }
 
                     Navigator.pop(context);
@@ -496,6 +589,27 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
   }
 }
 
+class _ImageEntryFormGroup {
+  final TextEditingController imageUrlController;
+  final TextEditingController titleController;
+  final TextEditingController descriptionController;
+  final TextEditingController priceController;
+
+  _ImageEntryFormGroup({
+    required this.imageUrlController,
+    required this.titleController,
+    required this.descriptionController,
+    required this.priceController,
+  });
+
+  void dispose() {
+    imageUrlController.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
+    priceController.dispose();
+  }
+}
+
 class _ProductAdminCard extends StatelessWidget {
   final ProductItem product;
   final VoidCallback onEdit;
@@ -509,8 +623,8 @@ class _ProductAdminCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final images = product.imageUrls;
-    final image = images.isNotEmpty ? images.first.trim() : '';
+    final primaryEntry = product.primaryImageEntry;
+    final image = primaryEntry.imageUrl.trim();
 
     return Card(
       color: AppColors.softBlack,
@@ -571,9 +685,19 @@ class _ProductAdminCard extends StatelessWidget {
                       color: AppColors.white,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    primaryEntry.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Text(
-                    product.description,
+                    primaryEntry.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Color(0xFFBDBDBD)),
@@ -585,9 +709,10 @@ class _ProductAdminCard extends StatelessWidget {
                     children: [
                       _chip(product.category),
                       _chip(product.collection),
-                      _chip('GHS ${product.price.toStringAsFixed(2)}'),
+                      _chip('Base GHS ${product.price.toStringAsFixed(2)}'),
+                      _chip('Entry GHS ${primaryEntry.price.toStringAsFixed(2)}'),
                       _chip('Stock: ${product.stockQuantity}'),
-                      _chip('${product.imageUrls.length} image(s)'),
+                      _chip('${product.imageEntries.length} image entry(s)'),
                       _chip(product.isAvailable ? 'Available' : 'Unavailable'),
                       if (product.isFeatured) _chip('Featured'),
                       if (product.isNewArrival) _chip('New Arrival'),

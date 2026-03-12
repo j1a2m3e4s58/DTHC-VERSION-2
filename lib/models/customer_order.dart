@@ -11,6 +11,8 @@ class CustomerOrder {
   final double deliveryFee;
   final double total;
   final DateTime createdAt;
+  final String paymentMethod;
+  final String trackingCode;
   bool isNew;
   bool isDelivered;
 
@@ -25,6 +27,8 @@ class CustomerOrder {
     required this.deliveryFee,
     required this.total,
     required this.createdAt,
+    this.paymentMethod = 'Mobile Money',
+    this.trackingCode = '',
     this.isNew = true,
     this.isDelivered = false,
   });
@@ -41,6 +45,8 @@ class CustomerOrder {
       'deliveryFee': deliveryFee,
       'total': total,
       'createdAt': createdAt.toIso8601String(),
+      'paymentMethod': paymentMethod,
+      'trackingCode': trackingCode,
       'isNew': isNew,
       'isDelivered': isDelivered,
     };
@@ -75,6 +81,8 @@ class CustomerOrder {
       total: (map['total'] ?? 0).toDouble(),
       createdAt: DateTime.tryParse((map['createdAt'] ?? '').toString()) ??
           DateTime.now(),
+      paymentMethod: (map['paymentMethod'] ?? 'Mobile Money').toString(),
+      trackingCode: (map['trackingCode'] ?? '').toString(),
       isNew: (map['isNew'] ?? true) as bool,
       isDelivered: (map['isDelivered'] ?? false) as bool,
     );

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'payment_delivery_page.dart';
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
 import '../widgets/custom_navbar.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
+import 'contact_page.dart';
 import 'home_page.dart';
 import 'menu_page.dart';
+import 'payment_delivery_page.dart';
+import 'track_order_page.dart';
 
 class LookbookPage extends StatelessWidget {
   const LookbookPage({super.key});
@@ -38,6 +40,12 @@ class LookbookPage extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const MenuPage()),
                 );
               },
+              onTrackOrderTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TrackOrderPage()),
+                );
+              },
               onSpecialPacksTap: () {
                 Navigator.push(
                   context,
@@ -51,21 +59,26 @@ class LookbookPage extends StatelessWidget {
                 );
               },
               onContactTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Contact page will be connected next.'),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ContactPage()),
                 );
               },
               onLookbookTap: () {},
-onDeliveryTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const PaymentDeliveryPage(),
-    ),
-  );
-},
+              onDeliveryTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PaymentDeliveryPage(),
+                  ),
+                );
+              },
+              onOrderNowTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MenuPage()),
+                );
+              },
               onAdminTap: () {
                 Navigator.push(
                   context,
@@ -75,9 +88,9 @@ onDeliveryTap: () {
                 );
               },
             ),
-            const _LookbookHeroSection(),
+            _LookbookHeroSection(entries: entries),
             _LookbookEditorialSection(entries: entries),
-            const _LookbookStyleNotesSection(),
+            const _LookbookStyleDirectionSection(),
           ],
         ),
       ),
@@ -86,74 +99,119 @@ onDeliveryTap: () {
 }
 
 class _LookbookHeroSection extends StatelessWidget {
-  const _LookbookHeroSection();
+  final List<Map<String, dynamic>> entries;
+
+  const _LookbookHeroSection({
+    required this.entries,
+  });
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 768;
+    final bool isMobile = width < 760;
+    final featured = entries.isNotEmpty ? entries.first : null;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 16 : 32,
-        vertical: isMobile ? 26 : 42,
+        vertical: isMobile ? 20 : 32,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
+          constraints: const BoxConstraints(maxWidth: 1380),
           child: Container(
-            padding: EdgeInsets.all(isMobile ? 20 : 30),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: AppColors.charcoal),
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF1F1F1F),
-                  Color(0xFF0D0D0D),
+                  Color(0xFF171717),
+                  Color(0xFF0B0B0B),
                 ],
               ),
-              border: Border.all(color: AppColors.charcoal),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x22000000),
-                  blurRadius: 22,
-                  offset: Offset(0, 10),
+                  color: Color(0x26000000),
+                  blurRadius: 24,
+                  offset: Offset(0, 12),
                 ),
               ],
             ),
-            child: isMobile
-                ? const Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bool stack = constraints.maxWidth < 980;
+
+                if (stack) {
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _LookbookBadge(),
-                      SizedBox(height: 18),
-                      _LookbookHeroText(),
-                      SizedBox(height: 22),
-                      _LookbookHeroSideCard(),
-                    ],
-                  )
-                : const Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
+                      if (featured != null)
+                        _HeroEditorialImage(
+                          imageUrl: '${featured['imageUrl'] ?? ''}',
+                          height: isMobile ? 260 : 340,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(32),
+                          ),
+                        ),
+                      Padding(
+                        padding: EdgeInsets.all(isMobile ? 20 : 28),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _LookbookBadge(),
-                            SizedBox(height: 18),
-                            _LookbookHeroText(),
+                            const _HeroBadge(),
+                            const SizedBox(height: 18),
+                            const _HeroTitleBlock(),
+                            const SizedBox(height: 24),
+                            _HeroMetaPanel(entries: entries),
                           ],
                         ),
                       ),
-                      SizedBox(width: 24),
-                      Expanded(
-                        flex: 2,
-                        child: _LookbookHeroSideCard(),
-                      ),
                     ],
-                  ),
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: Padding(
+                        padding: const EdgeInsets.all(30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const _HeroBadge(),
+                            const SizedBox(height: 18),
+                            const _HeroTitleBlock(),
+                            const SizedBox(height: 30),
+                            _HeroMetaPanel(entries: entries),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 5,
+                      child: featured == null
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding: const EdgeInsets.only(
+                                top: 18,
+                                right: 18,
+                                bottom: 18,
+                              ),
+                              child: _HeroEditorialImage(
+                                imageUrl: '${featured['imageUrl'] ?? ''}',
+                                height: 520,
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -161,8 +219,8 @@ class _LookbookHeroSection extends StatelessWidget {
   }
 }
 
-class _LookbookBadge extends StatelessWidget {
-  const _LookbookBadge();
+class _HeroBadge extends StatelessWidget {
+  const _HeroBadge();
 
   @override
   Widget build(BuildContext context) {
@@ -170,47 +228,51 @@ class _LookbookBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.gold,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: const Text(
-        'DTHC Lookbook',
+        'DTHC LOOKBOOK',
         style: TextStyle(
           color: AppColors.primaryBlack,
+          fontSize: 12,
           fontWeight: FontWeight.w900,
-          fontSize: 13,
+          letterSpacing: 0.5,
         ),
       ),
     );
   }
 }
 
-class _LookbookHeroText extends StatelessWidget {
-  const _LookbookHeroText();
+class _HeroTitleBlock extends StatelessWidget {
+  const _HeroTitleBlock();
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 768;
+    final bool isMobile = width < 760;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Streetwear presented like a premium fashion editorial.',
+          'Editorial streetwear moods for a stronger DTHC brand experience.',
           style: TextStyle(
             color: AppColors.white,
-            fontSize: isMobile ? 28 : 34,
+            fontSize: isMobile ? 30 : 46,
             fontWeight: FontWeight.w900,
-            height: 1.15,
+            height: 1.08,
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'The lookbook makes DTHC feel more complete by showing shoppers styled fashion direction, not only product listings.',
-          style: TextStyle(
-            color: Color(0xFFBDBDBD),
-            fontSize: 15,
-            height: 1.7,
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 720),
+          child: Text(
+            'The Lookbook turns product browsing into styled fashion storytelling. Instead of only showing items, DTHC now presents mood, attitude, layering, and visual direction like a premium streetwear label.',
+            style: TextStyle(
+              color: Color(0xFFBBBBBB),
+              fontSize: 15,
+              height: 1.7,
+            ),
           ),
         ),
       ],
@@ -218,34 +280,94 @@ class _LookbookHeroText extends StatelessWidget {
   }
 }
 
-class _LookbookHeroSideCard extends StatelessWidget {
-  const _LookbookHeroSideCard();
+class _HeroMetaPanel extends StatelessWidget {
+  final List<Map<String, dynamic>> entries;
+
+  const _HeroMetaPanel({
+    required this.entries,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final moodCount = entries.length;
+
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: [
+        _HeroMetricCard(
+          title: '$moodCount Styled Moods',
+          subtitle: 'Editorial looks that make the store feel more premium.',
+          icon: Icons.auto_awesome_outlined,
+        ),
+        const _HeroMetricCard(
+          title: 'Filtered Shop Flow',
+          subtitle: 'Each mood can lead shoppers into a focused buying path.',
+          icon: Icons.shopping_bag_outlined,
+        ),
+        const _HeroMetricCard(
+          title: 'Brand Identity',
+          subtitle: 'Black, gold, contrast, and styling language stay consistent.',
+          icon: Icons.bolt_outlined,
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroMetricCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  const _HeroMetricCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      width: 250,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.charcoal),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LookbookMetricRow(
-            title: 'Editorial Feel',
-            subtitle: 'Makes the brand feel more polished and premium.',
+          Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryBlack,
+            ),
           ),
-          SizedBox(height: 14),
-          _LookbookMetricRow(
-            title: 'Fit Inspiration',
-            subtitle: 'Customers can picture how items work together.',
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          SizedBox(height: 14),
-          _LookbookMetricRow(
-            title: 'Brand Identity',
-            subtitle: 'Stronger styling language builds a memorable store.',
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 13.5,
+              height: 1.55,
+            ),
           ),
         ],
       ),
@@ -253,58 +375,64 @@ class _LookbookHeroSideCard extends StatelessWidget {
   }
 }
 
-class _LookbookMetricRow extends StatelessWidget {
-  final String title;
-  final String subtitle;
+class _HeroEditorialImage extends StatelessWidget {
+  final String imageUrl;
+  final double height;
+  final BorderRadius borderRadius;
 
-  const _LookbookMetricRow({
-    required this.title,
-    required this.subtitle,
+  const _HeroEditorialImage({
+    required this.imageUrl,
+    required this.height,
+    required this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          height: 44,
-          width: 44,
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Icon(
-            Icons.photo_camera_back_outlined,
-            color: AppColors.primaryBlack,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        height: height,
+        width: double.infinity,
+        color: AppColors.charcoal,
+        child: imageUrl.trim().isEmpty
+            ? const Center(
+                child: Icon(
+                  Icons.photo_library_outlined,
+                  size: 58,
                   color: AppColors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
                 ),
+              )
+            : Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(
+                          Icons.photo_library_outlined,
+                          size: 58,
+                          color: AppColors.white,
+                        ),
+                      );
+                    },
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.center,
+                        colors: [
+                          Color(0x6B000000),
+                          Color(0x00000000),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: Color(0xFFBDBDBD),
-                  fontSize: 13,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -320,62 +448,69 @@ class _LookbookEditorialSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final featured = entries.isNotEmpty ? entries.first : null;
-    final others = entries.length > 1 ? entries.sublist(1) : <Map<String, dynamic>>[];
+    final secondaryEntries =
+        entries.length > 1 ? entries.sublist(1) : <Map<String, dynamic>>[];
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
-        vertical: 10,
+        horizontal: width < 760 ? 16 : 32,
+        vertical: 8,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
+          constraints: const BoxConstraints(maxWidth: 1380),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Editorial Fits',
+                'Editorial Moods',
                 style: TextStyle(
                   color: AppColors.white,
-                  fontSize: 30,
+                  fontSize: 32,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Use this section to display mood, styling direction, and visual identity across the DTHC brand.',
-                style: TextStyle(
-                  color: Color(0xFFBDBDBD),
-                  fontSize: 15,
-                  height: 1.6,
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 780),
+                child: Text(
+                  'Each look is styled to feel like a premium streetwear direction, not just a product tile. The layout expands naturally so you can keep adding more moods later without creating overflow problems.',
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 15,
+                    height: 1.65,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
               if (featured != null) ...[
-                _FeaturedLookbookCard(entry: featured),
-                const SizedBox(height: 20),
+                _FeaturedEditorialCard(entry: featured),
+                const SizedBox(height: 22),
               ],
-              GridView.builder(
-                itemCount: others.length,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: width > 1100
-                      ? 3
-                      : width > 700
-                          ? 2
-                          : 1,
-                  crossAxisSpacing: 18,
-                  mainAxisSpacing: 18,
-                  childAspectRatio: width > 1100
-                      ? 0.70
-                      : width > 700
-                          ? 0.78
-                          : 0.92,
-                ),
-                itemBuilder: (context, index) {
-                  return _LookbookGalleryCard(entry: others[index]);
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxWidth = constraints.maxWidth;
+                  double cardWidth;
+
+                  if (maxWidth >= 1260) {
+                    cardWidth = (maxWidth - 36) / 3;
+                  } else if (maxWidth >= 820) {
+                    cardWidth = (maxWidth - 18) / 2;
+                  } else {
+                    cardWidth = maxWidth;
+                  }
+
+                  return Wrap(
+                    spacing: 18,
+                    runSpacing: 18,
+                    children: secondaryEntries.map((entry) {
+                      return SizedBox(
+                        width: cardWidth,
+                        child: _EditorialGalleryCard(entry: entry),
+                      );
+                    }).toList(),
+                  );
                 },
               ),
             ],
@@ -386,12 +521,51 @@ class _LookbookEditorialSection extends StatelessWidget {
   }
 }
 
-class _FeaturedLookbookCard extends StatelessWidget {
+class _FeaturedEditorialCard extends StatelessWidget {
   final Map<String, dynamic> entry;
 
-  const _FeaturedLookbookCard({
+  const _FeaturedEditorialCard({
     required this.entry,
   });
+
+  void _openTarget(BuildContext context) {
+    final targetType = '${entry['targetType'] ?? ''}'.trim().toLowerCase();
+    final targetValue = '${entry['targetValue'] ?? ''}'.trim();
+
+    if (targetValue.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This mood is not linked yet.'),
+        ),
+      );
+      return;
+    }
+
+    if (targetType == 'collection') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MenuPage(collectionFilter: targetValue),
+        ),
+      );
+      return;
+    }
+
+    if (targetType == 'category') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MenuPage(categoryFilter: targetValue),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MenuPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -399,6 +573,7 @@ class _FeaturedLookbookCard extends StatelessWidget {
     final title = '${entry['title'] ?? ''}';
     final subtitle = '${entry['subtitle'] ?? ''}';
     final tag = '${entry['tag'] ?? ''}';
+    final ctaText = '${entry['ctaText'] ?? 'Shop This Mood'}';
 
     return Container(
       decoration: BoxDecoration(
@@ -415,24 +590,27 @@ class _FeaturedLookbookCard extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 850;
+          final bool stack = constraints.maxWidth < 960;
 
-          if (isMobile) {
+          if (stack) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _LookbookImage(
                   imageUrl: imageUrl,
-                  height: 260,
-                  topRadius: 30,
-                  bottomRadius: 0,
+                  height: 280,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(22),
-                  child: _FeaturedLookbookText(
+                  child: _FeaturedEditorialText(
                     tag: tag,
                     title: title,
                     subtitle: subtitle,
+                    ctaText: ctaText,
+                    onTap: () => _openTarget(context),
                   ),
                 ),
               ],
@@ -442,23 +620,26 @@ class _FeaturedLookbookCard extends StatelessWidget {
           return Row(
             children: [
               Expanded(
-                flex: 3,
+                flex: 6,
                 child: _LookbookImage(
                   imageUrl: imageUrl,
-                  height: 380,
-                  topRadius: 30,
-                  bottomRadius: 30,
-                  leftOnly: true,
+                  height: 430,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    bottomLeft: Radius.circular(30),
+                  ),
                 ),
               ),
               Expanded(
-                flex: 2,
+                flex: 5,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: _FeaturedLookbookText(
+                  padding: const EdgeInsets.all(28),
+                  child: _FeaturedEditorialText(
                     tag: tag,
                     title: title,
                     subtitle: subtitle,
+                    ctaText: ctaText,
+                    onTap: () => _openTarget(context),
                   ),
                 ),
               ),
@@ -470,112 +651,219 @@ class _FeaturedLookbookCard extends StatelessWidget {
   }
 }
 
-class _FeaturedLookbookText extends StatelessWidget {
+class _FeaturedEditorialText extends StatelessWidget {
   final String tag;
   final String title;
   final String subtitle;
+  final String ctaText;
+  final VoidCallback onTap;
 
-  const _FeaturedLookbookText({
+  const _FeaturedEditorialText({
     required this.tag,
     required this.title,
     required this.subtitle,
+    required this.ctaText,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 850;
+    final bool isMobile = width < 760;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Text(
-            tag,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.primaryBlack,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
+        if (tag.trim().isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              tag,
+              style: const TextStyle(
+                color: AppColors.primaryBlack,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
-        ),
         const SizedBox(height: 16),
         Text(
           title,
-          maxLines: isMobile ? 2 : 3,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: AppColors.white,
-            fontSize: isMobile ? 24 : 28,
+            fontSize: isMobile ? 25 : 32,
             fontWeight: FontWeight.w900,
-            height: 1.15,
+            height: 1.12,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           subtitle,
-          maxLines: isMobile ? 3 : 4,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFBDBDBD),
             fontSize: 15,
             height: 1.7,
           ),
         ),
-        const SizedBox(height: 18),
-        SizedBox(
-          width: isMobile ? double.infinity : null,
-          child: OutlinedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Shop filtering from lookbook can be connected next.'),
+        const SizedBox(height: 22),
+        const _EditorialDetailStrip(),
+        const SizedBox(height: 24),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.primaryBlack,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
                 ),
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.gold,
-              side: const BorderSide(color: AppColors.gold),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                ctaText,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
-            child: const Text(
-              'Shop This Mood',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CollectionsPage()),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.white,
+                side: const BorderSide(color: AppColors.charcoal),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'Explore Collections',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _LookbookGalleryCard extends StatelessWidget {
-  final Map<String, dynamic> entry;
+class _EditorialDetailStrip extends StatelessWidget {
+  const _EditorialDetailStrip();
 
-  const _LookbookGalleryCard({
-    required this.entry,
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: const [
+        _EditorialMiniPill(label: 'Premium mood'),
+        _EditorialMiniPill(label: 'Streetwear styling'),
+        _EditorialMiniPill(label: 'Filtered shop flow'),
+      ],
+    );
+  }
+}
+
+class _EditorialMiniPill extends StatelessWidget {
+  final String label;
+
+  const _EditorialMiniPill({
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 700;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
 
+class _EditorialGalleryCard extends StatelessWidget {
+  final Map<String, dynamic> entry;
+
+  const _EditorialGalleryCard({
+    required this.entry,
+  });
+
+  void _openTarget(BuildContext context) {
+    final targetType = '${entry['targetType'] ?? ''}'.trim().toLowerCase();
+    final targetValue = '${entry['targetValue'] ?? ''}'.trim();
+
+    if (targetValue.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This mood is not linked yet.'),
+        ),
+      );
+      return;
+    }
+
+    if (targetType == 'collection') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MenuPage(collectionFilter: targetValue),
+        ),
+      );
+      return;
+    }
+
+    if (targetType == 'category') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MenuPage(categoryFilter: targetValue),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MenuPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final imageUrl = '${entry['imageUrl'] ?? ''}';
     final title = '${entry['title'] ?? ''}';
     final subtitle = '${entry['subtitle'] ?? ''}';
     final tag = '${entry['tag'] ?? ''}';
+    final ctaText = '${entry['ctaText'] ?? 'Shop This Mood'}';
 
     return Container(
       decoration: BoxDecoration(
@@ -584,68 +872,78 @@ class _LookbookGalleryCard extends StatelessWidget {
         border: Border.all(color: AppColors.charcoal),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _LookbookImage(
             imageUrl: imageUrl,
-            height: isMobile ? 200 : 230,
-            topRadius: 28,
-            bottomRadius: 0,
+            height: 260,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(28),
+            ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(
-              isMobile ? 14 : 18,
-              isMobile ? 14 : 18,
-              isMobile ? 14 : 18,
-              isMobile ? 14 : 18,
-            ),
+            padding: const EdgeInsets.all(18),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 160),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.charcoal,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Text(
-                    tag,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                if (tag.trim().isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.charcoal,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 14),
                 Text(
                   title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.white,
-                    fontSize: isMobile ? 18 : 20,
+                    fontSize: 21,
                     fontWeight: FontWeight.w900,
-                    height: 1.2,
+                    height: 1.18,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   subtitle,
-                  maxLines: isMobile ? 3 : 4,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFBDBDBD),
                     fontSize: 14,
-                    height: 1.6,
+                    height: 1.65,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => _openTarget(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.gold,
+                      side: const BorderSide(color: AppColors.gold),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      ctaText,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 ),
               ],
@@ -660,39 +958,21 @@ class _LookbookGalleryCard extends StatelessWidget {
 class _LookbookImage extends StatelessWidget {
   final String imageUrl;
   final double height;
-  final double topRadius;
-  final double bottomRadius;
-  final bool leftOnly;
+  final BorderRadius borderRadius;
 
   const _LookbookImage({
     required this.imageUrl,
     required this.height,
-    required this.topRadius,
-    required this.bottomRadius,
-    this.leftOnly = false,
+    required this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
-    BorderRadius borderRadius;
-
-    if (leftOnly) {
-      borderRadius = BorderRadius.only(
-        topLeft: Radius.circular(topRadius),
-        bottomLeft: Radius.circular(bottomRadius),
-      );
-    } else {
-      borderRadius = BorderRadius.vertical(
-        top: Radius.circular(topRadius),
-        bottom: Radius.circular(bottomRadius),
-      );
-    }
-
     return ClipRRect(
       borderRadius: borderRadius,
       child: Container(
-        height: height,
         width: double.infinity,
+        height: height,
         color: AppColors.charcoal,
         child: imageUrl.trim().isEmpty
             ? const Center(
@@ -720,8 +1000,8 @@ class _LookbookImage extends StatelessWidget {
   }
 }
 
-class _LookbookStyleNotesSection extends StatelessWidget {
-  const _LookbookStyleNotesSection();
+class _LookbookStyleDirectionSection extends StatelessWidget {
+  const _LookbookStyleDirectionSection();
 
   @override
   Widget build(BuildContext context) {
@@ -730,12 +1010,12 @@ class _LookbookStyleNotesSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
+        horizontal: width < 760 ? 16 : 32,
         vertical: 30,
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
+          constraints: const BoxConstraints(maxWidth: 1380),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -748,12 +1028,15 @@ class _LookbookStyleNotesSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'This section helps explain the brand vibe behind the pieces and makes the fashion experience feel more premium.',
-                style: TextStyle(
-                  color: Color(0xFFBDBDBD),
-                  fontSize: 15,
-                  height: 1.6,
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 760),
+                child: Text(
+                  'This section reinforces the visual language behind the brand: dark luxury, premium street layering, and cleaner fashion presentation across mobile, tablet, and desktop.',
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 15,
+                    height: 1.65,
+                  ),
                 ),
               ),
               const SizedBox(height: 22),
@@ -761,27 +1044,27 @@ class _LookbookStyleNotesSection extends StatelessWidget {
                 spacing: 18,
                 runSpacing: 18,
                 children: const [
-                  _StyleNoteCard(
+                  _StyleDirectionCard(
                     icon: Icons.nightlight_round,
                     title: 'Dark Luxury',
                     subtitle:
-                        'Black-led styling, gold detail accents, and strong visual contrast.',
+                        'Black-led composition, gold accents, strong contrast, and premium mood across the page.',
                   ),
-                  _StyleNoteCard(
+                  _StyleDirectionCard(
                     icon: Icons.checkroom_outlined,
-                    title: 'Street Layers',
+                    title: 'Streetwear Layering',
                     subtitle:
-                        'Tees, caps, sneakers, and accessories styled for bold everyday fits.',
+                        'Tees, caps, sneakers, chains, belts, and supporting accessories styled as complete fits.',
                   ),
-                  _StyleNoteCard(
+                  _StyleDirectionCard(
                     icon: Icons.auto_awesome_outlined,
-                    title: 'Premium Energy',
+                    title: 'Editorial Selling',
                     subtitle:
-                        'Simple items are presented with stronger fashion confidence.',
+                        'Looks do not just decorate the page — they lead shoppers into filtered buying paths.',
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -790,12 +1073,12 @@ class _LookbookStyleNotesSection extends StatelessWidget {
   }
 }
 
-class _StyleNoteCard extends StatelessWidget {
+class _StyleDirectionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
 
-  const _StyleNoteCard({
+  const _StyleDirectionCard({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -803,13 +1086,8 @@ class _StyleNoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final horizontalPadding = width < 768 ? 32.0 : 64.0;
-    final availableWidth = width - horizontalPadding;
-    final cardWidth = availableWidth < 400 ? availableWidth : 400.0;
-
     return Container(
-      width: cardWidth,
+      width: 320,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
@@ -817,12 +1095,11 @@ class _StyleNoteCard extends StatelessWidget {
         border: Border.all(color: AppColors.charcoal),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 58,
-            width: 58,
+            height: 56,
+            width: 56,
             decoration: BoxDecoration(
               color: AppColors.gold,
               borderRadius: BorderRadius.circular(16),
@@ -835,8 +1112,6 @@ class _StyleNoteCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: AppColors.white,
               fontSize: 20,
@@ -846,8 +1121,6 @@ class _StyleNoteCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFBDBDBD),
               fontSize: 14,

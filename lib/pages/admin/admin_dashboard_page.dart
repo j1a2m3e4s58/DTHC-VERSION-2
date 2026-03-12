@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 import '../../data/order_controller.dart';
+import 'admin_collections_page.dart';
 import 'admin_food_page.dart';
+import 'admin_hero_page.dart';
+import 'admin_lookbook_page.dart';
 import 'admin_orders_page.dart';
 
 class AdminDashboardPage extends StatelessWidget {
@@ -126,7 +129,7 @@ class AdminDashboardPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 if (isMobile)
                   Column(
-                    children: [
+                    children: const [
                       _DashboardActionCard(
                         title: 'Product Management',
                         subtitle:
@@ -134,19 +137,40 @@ class AdminDashboardPage extends StatelessWidget {
                         icon: Icons.checkroom_rounded,
                         accentIcon: Icons.inventory_2_outlined,
                         buttonLabel: 'Open Products',
-                        page: const AdminFoodPage(),
+                        page: AdminFoodPage(),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       _DashboardActionCard(
-                        title: 'Customer Orders',
+                        title: 'Hero Banner Management',
                         subtitle:
-                            'Review incoming orders, customer details, item summaries, delivery flow, and newly placed requests.',
-                        icon: Icons.receipt_long_rounded,
-                        accentIcon: Icons.local_shipping_outlined,
-                        buttonLabel: 'Open Orders',
-                        page: const AdminOrdersPage(),
-                        highlightValue:
-                            newOrdersCount > 0 ? '$newOrdersCount New' : 'Live',
+                            'Manage homepage banner slides, CTA text, banner images, sort order, and linked target products.',
+                        icon: Icons.view_carousel_rounded,
+                        accentIcon: Icons.image_outlined,
+                        buttonLabel: 'Open Hero Manager',
+                        page: AdminHeroPage(),
+                        highlightValue: 'Homepage',
+                      ),
+                      SizedBox(height: 16),
+                      _DashboardActionCard(
+                        title: 'Collections Management',
+                        subtitle:
+                            'Create, edit, feature, and remove collection sections that organize DTHC drops and public storefront discovery.',
+                        icon: Icons.grid_view_rounded,
+                        accentIcon: Icons.auto_awesome_motion_outlined,
+                        buttonLabel: 'Open Collections',
+                        page: AdminCollectionsPage(),
+                        highlightValue: 'Storefront',
+                      ),
+                      SizedBox(height: 16),
+                      _DashboardActionCard(
+                        title: 'Lookbook Management',
+                        subtitle:
+                            'Manage lookbook mood boards, editorial images, fashion inspiration, and shop-the-look links.',
+                        icon: Icons.photo_library_rounded,
+                        accentIcon: Icons.style_outlined,
+                        buttonLabel: 'Open Lookbook',
+                        page: AdminLookbookPage(),
+                        highlightValue: 'Editorial',
                       ),
                     ],
                   )
@@ -158,8 +182,8 @@ class AdminDashboardPage extends StatelessWidget {
                     crossAxisSpacing: 18,
                     mainAxisSpacing: 18,
                     childAspectRatio: isTablet ? 1.18 : 1.42,
-                    children: [
-                      const _DashboardActionCard(
+                    children: const [
+                      _DashboardActionCard(
                         title: 'Product Management',
                         subtitle:
                             'Edit DTHC products, names, categories, prices, stock, image URLs, featured items, and product availability.',
@@ -169,18 +193,64 @@ class AdminDashboardPage extends StatelessWidget {
                         page: AdminFoodPage(),
                       ),
                       _DashboardActionCard(
+                        title: 'Hero Banner Management',
+                        subtitle:
+                            'Manage homepage banner slides, CTA text, banner images, sort order, and linked target products.',
+                        icon: Icons.view_carousel_rounded,
+                        accentIcon: Icons.image_outlined,
+                        buttonLabel: 'Open Hero Manager',
+                        page: AdminHeroPage(),
+                        highlightValue: 'Homepage',
+                      ),
+                      _DashboardActionCard(
+                        title: 'Collections Management',
+                        subtitle:
+                            'Create, edit, feature, and remove collection sections that organize DTHC drops and public storefront discovery.',
+                        icon: Icons.grid_view_rounded,
+                        accentIcon: Icons.auto_awesome_motion_outlined,
+                        buttonLabel: 'Open Collections',
+                        page: AdminCollectionsPage(),
+                        highlightValue: 'Storefront',
+                      ),
+                      _DashboardActionCard(
+                        title: 'Lookbook Management',
+                        subtitle:
+                            'Manage lookbook mood boards, editorial images, fashion inspiration, and shop-the-look links.',
+                        icon: Icons.photo_library_rounded,
+                        accentIcon: Icons.style_outlined,
+                        buttonLabel: 'Open Lookbook',
+                        page: AdminLookbookPage(),
+                        highlightValue: 'Editorial',
+                      ),
+                      _DashboardActionCard(
                         title: 'Customer Orders',
                         subtitle:
                             'Review incoming orders, customer details, item summaries, delivery flow, and newly placed requests.',
                         icon: Icons.receipt_long_rounded,
                         accentIcon: Icons.local_shipping_outlined,
                         buttonLabel: 'Open Orders',
-                        page: const AdminOrdersPage(),
-                        highlightValue:
-                            newOrdersCount > 0 ? '$newOrdersCount New' : 'Live',
+                        page: AdminOrdersPage(),
+                        highlightValue: 'Live',
                       ),
                     ],
                   ),
+                if (isMobile) ...[
+                  const SizedBox(height: 16),
+                  _DashboardActionCard(
+                    title: 'Customer Orders',
+                    subtitle:
+                        'Review incoming orders, customer details, item summaries, delivery flow, and newly placed requests.',
+                    icon: Icons.receipt_long_rounded,
+                    accentIcon: Icons.local_shipping_outlined,
+                    buttonLabel: 'Open Orders',
+                    page: const AdminOrdersPage(),
+                    highlightValue:
+                        newOrdersCount > 0 ? '$newOrdersCount New' : 'Live',
+                  ),
+                ],
+                if (!isMobile) ...[
+                  const SizedBox(height: 0),
+                ],
               ],
             ),
           ),
@@ -305,7 +375,7 @@ class _HeroTopText extends StatelessWidget {
         ),
         SizedBox(height: 12),
         Text(
-          'Update products, track orders, and keep the store running with a fashion-brand admin experience that matches the customer-facing site.',
+          'Update products, track orders, manage collections, and control editorial storefront content with a fashion-brand admin experience that matches the customer-facing site.',
           style: TextStyle(
             color: Color(0xFFBDBDBD),
             fontSize: 15,

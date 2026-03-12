@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'track_order_page.dart';
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
 import '../data/store_controller.dart';
@@ -17,8 +17,56 @@ import 'lookbook_page.dart';
 import 'menu_page.dart';
 import 'payment_delivery_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openCartPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CartPage()),
+    );
+  }
+
+  void _addToCartAndOpenCart(ProductItem product) {
+    context.read<CartController>().addToCart(product);
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart'),
+        duration: const Duration(milliseconds: 900),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    _openCartPage();
+  }
+
+  List<ProductItem> _buildSearchResults(List<ProductItem> products) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return [];
+
+    return products.where((product) {
+      return product.name.toLowerCase().contains(query) ||
+          product.description.toLowerCase().contains(query) ||
+          product.category.toLowerCase().contains(query) ||
+          product.collection.toLowerCase().contains(query);
+    }).take(6).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +75,8 @@ class HomePage extends StatelessWidget {
     final categories = controller.getCategories();
     final featuredProducts = controller.getFeaturedProducts();
     final newArrivals = controller.getNewArrivals();
+    final allProducts = controller.getAvailableProducts();
+    final searchResults = _buildSearchResults(allProducts);
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -48,32 +98,33 @@ class HomePage extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const CollectionsPage()),
                 );
               },
-              onCartTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CartPage()),
-                );
-              },
+              onCartTap: _openCartPage,
               onContactTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ContactPage()),
                 );
               },
+              onTrackOrderTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TrackOrderPage()),
+              );
+            },
               onLookbookTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const LookbookPage()),
-  );
-},
-onDeliveryTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const PaymentDeliveryPage(),
-    ),
-  );
-},
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LookbookPage()),
+                );
+              },
+              onDeliveryTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PaymentDeliveryPage(),
+                  ),
+                );
+              },
               onOrderNowTap: () {
                 Navigator.push(
                   context,
@@ -102,6 +153,24 @@ onDeliveryTap: () {
                   MaterialPageRoute(builder: (_) => const MenuPage()),
                 );
               },
+              onHeroProductTap: _addToCartAndOpenCart,
+            ),
+            _HomeSearchSection(
+              controller: _searchController,
+              query: _searchQuery,
+              results: searchResults,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              onClear: () {
+                setState(() {
+                  _searchController.clear();
+                  _searchQuery = '';
+                });
+              },
+              onResultTap: _addToCartAndOpenCart,
             ),
             _QuickCategorySection(categories: categories),
             const _SiteHighlightsSection(),
@@ -110,6 +179,7 @@ onDeliveryTap: () {
               subtitle:
                   'Top pieces from the latest DTHC drops, styled for bold everyday wear.',
               products: featuredProducts,
+              onAddToCart: _addToCartAndOpenCart,
             ),
             const _CollectionsPreviewSection(),
             _FeaturedSection(
@@ -117,11 +187,251 @@ onDeliveryTap: () {
               subtitle:
                   'Fresh products just added to the store for your next fit upgrade.',
               products: newArrivals,
+              onAddToCart: _addToCartAndOpenCart,
             ),
             const _LookbookPreviewSection(),
             const _PaymentDeliveryPreviewSection(),
             const _WhyChooseUsSection(),
             _FooterSection(storeSettings: storeSettings),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSearchSection extends StatelessWidget {
+  final TextEditingController controller;
+  final String query;
+  final List<ProductItem> results;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+  final ValueChanged<ProductItem> onResultTap;
+
+  const _HomeSearchSection({
+    required this.controller,
+    required this.query,
+    required this.results,
+    required this.onChanged,
+    required this.onClear,
+    required this.onResultTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
+    final hasQuery = query.trim().isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      color: AppColors.primaryBlack,
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 16 : 32,
+        26,
+        isMobile ? 16 : 32,
+        8,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Container(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            decoration: BoxDecoration(
+              color: AppColors.softBlack,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: AppColors.charcoal),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x22000000),
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Search DTHC',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Live product search with quick image results for a more premium shopping flow.',
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlack,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.charcoal),
+                  ),
+                  child: TextField(
+                    controller: controller,
+                    onChanged: onChanged,
+                    style: const TextStyle(color: AppColors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search tees, sneakers, caps, chains, belts...',
+                      hintStyle: const TextStyle(color: Color(0xFF8D8D8D)),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: AppColors.gold,
+                      ),
+                      suffixIcon: hasQuery
+                          ? IconButton(
+                              onPressed: onClear,
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                if (hasQuery) ...[
+                  const SizedBox(height: 14),
+                  if (results.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlack,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.charcoal),
+                      ),
+                      child: const Text(
+                        'No matching products found yet.',
+                        style: TextStyle(
+                          color: Color(0xFFBDBDBD),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlack,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.charcoal),
+                      ),
+                      child: Column(
+                        children: results
+                            .map(
+                              (product) => _SearchResultTile(
+                                product: product,
+                                onTap: () => onResultTap(product),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchResultTile extends StatelessWidget {
+  final ProductItem product;
+  final VoidCallback onTap;
+
+  const _SearchResultTile({
+    required this.product,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = product.imageUrl.trim();
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 60,
+                height: 60,
+                color: AppColors.charcoal,
+                child: imageUrl.isEmpty
+                    ? const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: AppColors.white,
+                      )
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.shopping_bag_outlined,
+                            color: AppColors.white,
+                          );
+                        },
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${product.category} • ${product.collection}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'GHS ${product.price.toStringAsFixed(0)}',
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
+              ),
+            ),
           ],
         ),
       ),
@@ -386,11 +696,13 @@ class _FeaturedSection extends StatelessWidget {
   final String title;
   final String subtitle;
   final List<ProductItem> products;
+  final ValueChanged<ProductItem> onAddToCart;
 
   const _FeaturedSection({
     required this.title,
     required this.subtitle,
     required this.products,
+    required this.onAddToCart,
   });
 
   @override
@@ -448,7 +760,10 @@ class _FeaturedSection extends StatelessWidget {
                 ),
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  return _ProductPreviewCard(product: product);
+                  return _ProductPreviewCard(
+                    product: product,
+                    onAddToCart: () => onAddToCart(product),
+                  );
                 },
               ),
             ],
@@ -461,9 +776,11 @@ class _FeaturedSection extends StatelessWidget {
 
 class _ProductPreviewCard extends StatelessWidget {
   final ProductItem product;
+  final VoidCallback onAddToCart;
 
   const _ProductPreviewCard({
     required this.product,
+    required this.onAddToCart,
   });
 
   @override
@@ -568,20 +885,7 @@ class _ProductPreviewCard extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: product.isAvailable
-                      ? () {
-                          context.read<CartController>().addToCart(product);
-
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${product.name} added to cart'),
-                              duration: const Duration(milliseconds: 900),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: product.isAvailable ? onAddToCart : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.gold,
                     foregroundColor: AppColors.primaryBlack,

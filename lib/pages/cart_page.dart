@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'track_order_page.dart';
 import 'lookbook_page.dart';
 import 'payment_delivery_page.dart';
 import '../core/app_colors.dart';
@@ -31,6 +32,12 @@ class CartPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HomePage()),
               );
             },
+            onTrackOrderTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TrackOrderPage()),
+              );
+            },
             onMenuTap: () {
               Navigator.pushReplacement(
                 context,
@@ -52,19 +59,19 @@ class CartPage extends StatelessWidget {
               );
             },
             onLookbookTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const LookbookPage()),
-  );
-},
-onDeliveryTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const PaymentDeliveryPage(),
-    ),
-  );
-},
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LookbookPage()),
+              );
+            },
+            onDeliveryTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PaymentDeliveryPage(),
+                ),
+              );
+            },
             onOrderNowTap: () {
               Navigator.pushReplacement(
                 context,
@@ -76,11 +83,11 @@ onDeliveryTap: () {
             child: SingleChildScrollView(
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
+                  constraints: const BoxConstraints(maxWidth: 1320),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 16 : 32,
-                      vertical: isMobile ? 20 : 32,
+                      horizontal: isMobile ? 16 : 28,
+                      vertical: isMobile ? 20 : 30,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,16 +117,17 @@ onDeliveryTap: () {
         Text(
           'Your Cart',
           style: TextStyle(
-            fontSize: isMobile ? 28 : 40,
-            fontWeight: FontWeight.w800,
+            fontSize: isMobile ? 30 : 42,
+            fontWeight: FontWeight.w900,
             color: AppColors.white,
+            height: 1.1,
           ),
         ),
         const SizedBox(height: 10),
         Text(
           cartCount == 0
               ? 'Your selected fashion pieces will appear here.'
-              : 'You have $cartCount item${cartCount > 1 ? 's' : ''} in your cart.',
+              : 'You have $cartCount item${cartCount > 1 ? 's' : ''} ready for checkout.',
           style: TextStyle(
             fontSize: isMobile ? 14 : 16,
             height: 1.6,
@@ -133,15 +141,15 @@ onDeliveryTap: () {
   Widget _buildEmptyState(BuildContext context, bool isMobile) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 18,
             offset: const Offset(0, 10),
           ),
         ],
@@ -150,15 +158,15 @@ onDeliveryTap: () {
         children: [
           Icon(
             Icons.shopping_cart_outlined,
-            size: isMobile ? 54 : 72,
+            size: isMobile ? 56 : 78,
             color: AppColors.gold,
           ),
           const SizedBox(height: 16),
           Text(
             'Your cart is empty for now.',
             style: TextStyle(
-              fontSize: isMobile ? 18 : 22,
-              fontWeight: FontWeight.w700,
+              fontSize: isMobile ? 18 : 24,
+              fontWeight: FontWeight.w800,
               color: AppColors.white,
             ),
           ),
@@ -168,17 +176,17 @@ onDeliveryTap: () {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isMobile ? 13 : 15,
-              height: 1.6,
+              height: 1.7,
               color: const Color(0xFFBDBDBD),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 22),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.gold,
               foregroundColor: AppColors.primaryBlack,
               padding: const EdgeInsets.symmetric(
-                horizontal: 22,
+                horizontal: 24,
                 vertical: 14,
               ),
               shape: RoundedRectangleBorder(
@@ -191,7 +199,10 @@ onDeliveryTap: () {
                 MaterialPageRoute(builder: (_) => const MenuPage()),
               );
             },
-            child: const Text('Back to Shop'),
+            child: const Text(
+              'Back to Shop',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -217,7 +228,7 @@ onDeliveryTap: () {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          flex: 7,
+          flex: 8,
           child: _buildCartItemsCard(context, cart, isMobile),
         ),
         const SizedBox(width: 24),
@@ -236,28 +247,32 @@ onDeliveryTap: () {
   ) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isMobile ? 16 : 22),
+      padding: EdgeInsets.all(isMobile ? 14 : 20),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 18,
             offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
-        children: cart.items
-            .map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildCartItemTile(context, item, isMobile),
+        children: [
+          ...List.generate(cart.items.length, (index) {
+            final item = cart.items[index];
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == cart.items.length - 1 ? 0 : 16,
               ),
-            )
-            .toList(),
+              child: _buildCartItemTile(context, item, isMobile),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -270,134 +285,303 @@ onDeliveryTap: () {
     final cart = context.read<CartController>();
 
     return Container(
-      padding: EdgeInsets.all(isMobile ? 14 : 16),
+      padding: EdgeInsets.all(isMobile ? 14 : 18),
       decoration: BoxDecoration(
         color: AppColors.primaryBlack,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.charcoal,
-        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.charcoal),
       ),
       child: isMobile
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildItemTopSection(item, isMobile),
+                _buildMobileCartItemTop(item),
                 const SizedBox(height: 14),
-                _buildItemBottomSection(context, cart, item, isMobile),
+                _buildMobileCartItemBottom(cart, item),
               ],
             )
           : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  flex: 5,
-                  child: _buildItemTopSection(item, isMobile),
+                  flex: 7,
+                  child: _buildDesktopCartItemLeft(item),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 18),
                 Expanded(
                   flex: 4,
-                  child: _buildItemBottomSection(context, cart, item, isMobile),
+                  child: _buildDesktopCartItemRight(cart, item),
                 ),
               ],
             ),
     );
   }
 
-  Widget _buildItemTopSection(CartItem item, bool isMobile) {
+  Widget _buildMobileCartItemTop(CartItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildProductImage(item, true),
+        const SizedBox(height: 14),
+        _buildProductDetails(item, true),
+      ],
+    );
+  }
+
+  Widget _buildDesktopCartItemLeft(CartItem item) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            height: isMobile ? 72 : 84,
-            width: isMobile ? 72 : 84,
-            decoration: BoxDecoration(
-              gradient: AppColors.heroGradient,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: item.product.imageUrl.trim().isNotEmpty
-                ? Image.network(
-                    item.product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.shopping_bag_outlined,
-                        size: isMobile ? 30 : 34,
-                        color: AppColors.gold,
-                      );
-                    },
-                  )
-                : Icon(
-                    Icons.shopping_bag_outlined,
-                    size: isMobile ? 30 : 34,
-                    color: AppColors.gold,
-                  ),
-          ),
-        ),
-        const SizedBox(width: 14),
+        _buildProductImage(item, false),
+        const SizedBox(width: 18),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: isMobile ? 15 : 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.product.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 13,
-                  height: 1.5,
-                  color: const Color(0xFFBDBDBD),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'GHS ${item.product.price.toStringAsFixed(2)} each',
-                style: TextStyle(
-                  fontSize: isMobile ? 13 : 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.gold,
-                ),
-              ),
-            ],
-          ),
+          child: _buildProductDetails(item, false),
         ),
       ],
     );
   }
 
-  Widget _buildItemBottomSection(
-    BuildContext context,
-    CartController cart,
-    CartItem item,
-    bool isMobile,
-  ) {
-    return isMobile
-        ? Row(
-            children: [
-              _buildQuantityControl(cart, item, isMobile),
-              const Spacer(),
-              _buildItemPriceAndDelete(cart, item, isMobile),
-            ],
-          )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildQuantityControl(cart, item, isMobile),
-              _buildItemPriceAndDelete(cart, item, isMobile),
-            ],
-          );
+  Widget _buildProductImage(CartItem item, bool isMobile) {
+    final imageUrl = item.product.imageUrls.isNotEmpty
+        ? item.product.imageUrls.first.trim()
+        : '';
+
+    final double imageHeight = isMobile ? 210 : 170;
+    final double imageWidth = isMobile ? double.infinity : 170;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        height: imageHeight,
+        width: imageWidth,
+        decoration: const BoxDecoration(
+          gradient: AppColors.heroGradient,
+        ),
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildImageFallback(isMobile);
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return _buildImageLoader(isMobile);
+                },
+              )
+            : _buildImageFallback(isMobile),
+      ),
+    );
+  }
+
+  Widget _buildImageLoader(bool isMobile) {
+    return Center(
+      child: SizedBox(
+        width: isMobile ? 28 : 30,
+        height: isMobile ? 28 : 30,
+        child: const CircularProgressIndicator(
+          color: AppColors.gold,
+          strokeWidth: 2.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageFallback(bool isMobile) {
+    return Center(
+      child: Icon(
+        Icons.shopping_bag_outlined,
+        size: isMobile ? 44 : 46,
+        color: AppColors.gold,
+      ),
+    );
+  }
+
+  Widget _buildProductDetails(CartItem item, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildBadge(item.product.category, isGold: true),
+            _buildBadge(
+              item.product.isAvailable ? 'In Stock' : 'Unavailable',
+              isGold: false,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          item.product.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: isMobile ? 18 : 21,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          item.product.description,
+          maxLines: isMobile ? 3 : 4,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: isMobile ? 13 : 14,
+            height: 1.65,
+            color: const Color(0xFFBDBDBD),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoTile(
+                'Unit Price',
+                'GHS ${item.product.price.toStringAsFixed(2)}',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildInfoTile(
+                'Quantity',
+                '${item.quantity}',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadge(String text, {required bool isGold}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isGold
+            ? AppColors.gold.withValues(alpha: 0.12)
+            : AppColors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: isGold
+              ? AppColors.gold.withValues(alpha: 0.20)
+              : AppColors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: isGold ? AppColors.gold : AppColors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greyText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileCartItemBottom(CartController cart, CartItem item) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuantityControl(cart, item, true),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTotalBox(item, true),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: _buildRemoveButton(cart, item, true),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopCartItemRight(CartController cart, CartItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildTotalBox(item, false),
+        const SizedBox(height: 14),
+        _buildQuantityControl(cart, item, false),
+        const SizedBox(height: 14),
+        _buildRemoveButton(cart, item, false),
+      ],
+    );
+  }
+
+  Widget _buildTotalBox(CartItem item, bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 14 : 16),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Item Total',
+            style: TextStyle(
+              fontSize: isMobile ? 11.5 : 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greyText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'GHS ${item.totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 22,
+              fontWeight: FontWeight.w900,
+              color: AppColors.gold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildQuantityControl(
@@ -406,70 +590,97 @@ onDeliveryTap: () {
     bool isMobile,
   ) {
     return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 10,
+        vertical: isMobile ? 6 : 8,
+      ),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.charcoal),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            onPressed: () {
+          _buildQuantityButton(
+            icon: Icons.remove,
+            onTap: () {
               cart.decreaseQuantity(item.product.id);
             },
-            icon: const Icon(Icons.remove, color: AppColors.white),
-            visualDensity: VisualDensity.compact,
           ),
-          Text(
-            '${item.quantity}',
-            style: TextStyle(
-              fontSize: isMobile ? 14 : 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              '${item.quantity}',
+              style: TextStyle(
+                fontSize: isMobile ? 16 : 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+              ),
             ),
           ),
-          IconButton(
-            onPressed: () {
+          _buildQuantityButton(
+            icon: Icons.add,
+            onTap: () {
               cart.increaseQuantity(item.product.id);
             },
-            icon: const Icon(Icons.add, color: AppColors.white),
-            visualDensity: VisualDensity.compact,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildItemPriceAndDelete(
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlack,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.charcoal),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: AppColors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRemoveButton(
     CartController cart,
     CartItem item,
     bool isMobile,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          'GHS ${item.totalPrice.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontSize: isMobile ? 15 : 17,
-            fontWeight: FontWeight.w800,
-            color: AppColors.white,
-          ),
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.gold,
+        side: BorderSide(
+          color: AppColors.gold.withValues(alpha: 0.25),
         ),
-        const SizedBox(height: 6),
-        TextButton.icon(
-          onPressed: () {
-            cart.removeFromCart(item.product.id);
-          },
-          icon: const Icon(Icons.delete_outline, size: 18),
-          label: const Text('Remove'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.gold,
-            padding: EdgeInsets.zero,
-          ),
+        padding: EdgeInsets.symmetric(
+          vertical: isMobile ? 13 : 14,
+          horizontal: 14,
         ),
-      ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      onPressed: () {
+        cart.removeFromCart(item.product.id);
+      },
+      icon: const Icon(Icons.delete_outline, size: 18),
+      label: const Text(
+        'Remove Item',
+        style: TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 
@@ -483,12 +694,12 @@ onDeliveryTap: () {
       padding: EdgeInsets.all(isMobile ? 18 : 22),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.charcoal),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 18,
             offset: const Offset(0, 10),
           ),
         ],
@@ -499,23 +710,41 @@ onDeliveryTap: () {
           Text(
             'Order Summary',
             style: TextStyle(
-              fontSize: isMobile ? 18 : 22,
-              fontWeight: FontWeight.w800,
+              fontSize: isMobile ? 18 : 24,
+              fontWeight: FontWeight.w900,
               color: AppColors.white,
             ),
           ),
-          const SizedBox(height: 18),
-          _buildSummaryRow('Subtotal', cart.subtotal),
-          const SizedBox(height: 10),
-          _buildSummaryTextRow('Delivery Fee', cart.deliveryFeeLabel),
           const SizedBox(height: 8),
           Text(
-            cart.deliveryNote,
+            'Review your order before moving to checkout.',
             style: TextStyle(
-              fontSize: isMobile ? 12 : 13,
-              height: 1.5,
+              fontSize: isMobile ? 12.5 : 13.5,
+              height: 1.6,
               color: const Color(0xFFBDBDBD),
-              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildSummaryRow('Subtotal', cart.subtotal),
+          const SizedBox(height: 12),
+          _buildSummaryTextRow('Delivery Fee', cart.deliveryFeeLabel),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlack,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.charcoal),
+            ),
+            child: Text(
+              cart.deliveryNote,
+              style: TextStyle(
+                fontSize: isMobile ? 12 : 13,
+                height: 1.5,
+                color: const Color(0xFFBDBDBD),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           const Padding(
@@ -530,13 +759,13 @@ onDeliveryTap: () {
           const SizedBox(height: 22),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gold,
                 foregroundColor: AppColors.primaryBlack,
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               onPressed: () {
@@ -545,25 +774,33 @@ onDeliveryTap: () {
                   MaterialPageRoute(builder: (_) => const CheckoutPage()),
                 );
               },
-              child: const Text('Proceed to Checkout'),
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: const Text(
+                'Proceed to Checkout',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.white,
                 side: const BorderSide(color: AppColors.charcoal),
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               onPressed: () {
                 cart.clearCart();
               },
-              child: const Text('Clear Cart'),
+              icon: const Icon(Icons.delete_sweep_outlined),
+              label: const Text(
+                'Clear Cart',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -591,8 +828,8 @@ onDeliveryTap: () {
         Text(
           'GHS ${amount.toStringAsFixed(2)}',
           style: TextStyle(
-            fontSize: isTotal ? 18 : 15,
-            fontWeight: isTotal ? FontWeight.w800 : FontWeight.w700,
+            fontSize: isTotal ? 20 : 15,
+            fontWeight: isTotal ? FontWeight.w900 : FontWeight.w700,
             color: isTotal ? AppColors.gold : AppColors.white,
           ),
         ),

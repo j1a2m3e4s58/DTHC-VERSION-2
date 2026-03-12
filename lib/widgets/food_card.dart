@@ -8,11 +8,13 @@ import '../models/food_item.dart';
 class FoodCard extends StatefulWidget {
   final ProductItem food;
   final VoidCallback? onAddToCart;
+  final VoidCallback? onGoToCart;
 
   const FoodCard({
     super.key,
     required this.food,
     this.onAddToCart,
+    this.onGoToCart,
   });
 
   @override
@@ -21,6 +23,24 @@ class FoodCard extends StatefulWidget {
 
 class _FoodCardState extends State<FoodCard> {
   bool _isHovered = false;
+  int _currentImageIndex = 0;
+
+  ProductImageEntry get _currentEntry =>
+      widget.food.imageEntryAt(_currentImageIndex);
+
+  void _handleAddAndGoToCart() {
+    widget.onAddToCart?.call();
+    widget.onGoToCart?.call();
+  }
+
+  @override
+  void didUpdateWidget(covariant FoodCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.food.id != widget.food.id) {
+      _currentImageIndex = 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +82,15 @@ class _FoodCardState extends State<FoodCard> {
                 food: widget.food,
                 height: imageHeight,
                 isMobile: isMobile,
+                initialIndex: _currentImageIndex,
+                onIndexChanged: (index) {
+                  if (!mounted) return;
+                  setState(() {
+                    _currentImageIndex = index;
+                  });
+                },
+                onAddToCart: widget.food.isAvailable ? widget.onAddToCart : null,
+                onGoToCart: widget.onGoToCart,
               ),
               SizedBox(height: isMobile ? 10 : 12),
               Wrap(
@@ -88,7 +117,7 @@ class _FoodCardState extends State<FoodCard> {
               ),
               SizedBox(height: isMobile ? 10 : 12),
               Text(
-                widget.food.name,
+                _currentEntry.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -100,7 +129,7 @@ class _FoodCardState extends State<FoodCard> {
               ),
               const SizedBox(height: 6),
               Text(
-                widget.food.description,
+                _currentEntry.description,
                 maxLines: isMobile ? 2 : 3,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -111,8 +140,9 @@ class _FoodCardState extends State<FoodCard> {
               ),
               SizedBox(height: isMobile ? 12 : 14),
               _PriceAndActionSection(
-                food: widget.food,
-                onAddToCart: widget.food.isAvailable ? widget.onAddToCart : null,
+                entry: _currentEntry,
+                onAddToCart:
+                    widget.food.isAvailable ? _handleAddAndGoToCart : null,
                 isMobile: isMobile,
               ),
             ],
@@ -124,12 +154,12 @@ class _FoodCardState extends State<FoodCard> {
 }
 
 class _PriceAndActionSection extends StatelessWidget {
-  final ProductItem food;
+  final ProductImageEntry entry;
   final VoidCallback? onAddToCart;
   final bool isMobile;
 
   const _PriceAndActionSection({
-    required this.food,
+    required this.entry,
     required this.onAddToCart,
     required this.isMobile,
   });
@@ -158,7 +188,7 @@ class _PriceAndActionSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'GHS ${food.price.toStringAsFixed(2)}',
+                  'GHS ${entry.price.toStringAsFixed(2)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -195,7 +225,7 @@ class _PriceAndActionSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'GHS ${food.price.toStringAsFixed(2)}',
+                        'GHS ${entry.price.toStringAsFixed(2)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -222,11 +252,19 @@ class _FoodImageSection extends StatefulWidget {
   final ProductItem food;
   final double height;
   final bool isMobile;
+  final int initialIndex;
+  final ValueChanged<int> onIndexChanged;
+  final VoidCallback? onAddToCart;
+  final VoidCallback? onGoToCart;
 
   const _FoodImageSection({
     required this.food,
     required this.height,
     required this.isMobile,
+    required this.initialIndex,
+    required this.onIndexChanged,
+    this.onAddToCart,
+    this.onGoToCart,
   });
 
   @override
@@ -238,13 +276,15 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
   Timer? _timer;
   int _currentIndex = 0;
 
-  List<String> get _images =>
-      widget.food.imageUrls.where((url) => url.trim().isNotEmpty).toList();
+  List<ProductImageEntry> get _entries => widget.food.imageEntries
+      .where((entry) => entry.imageUrl.trim().isNotEmpty)
+      .toList();
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
     _startAutoSlide();
   }
 
@@ -253,8 +293,9 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.food.id != widget.food.id ||
-        oldWidget.food.imageUrls.length != widget.food.imageUrls.length) {
+        oldWidget.food.imageEntries.length != widget.food.imageEntries.length) {
       _currentIndex = 0;
+      widget.onIndexChanged(0);
       _stopAutoSlide();
       _startAutoSlide();
 
@@ -267,12 +308,12 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
   }
 
   void _startAutoSlide() {
-    if (_images.length <= 1) return;
+    if (_entries.length <= 1) return;
 
     _timer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted || !_pageController.hasClients || _images.isEmpty) return;
+      if (!mounted || !_pageController.hasClients || _entries.isEmpty) return;
 
-      final nextPage = (_currentIndex + 1) % _images.length;
+      final nextPage = (_currentIndex + 1) % _entries.length;
 
       _pageController.animateToPage(
         nextPage,
@@ -288,16 +329,17 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
   }
 
   void _openGallery() {
-    if (_images.isEmpty) return;
+    if (_entries.isEmpty) return;
 
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.88),
       builder: (_) => _ProductGalleryDialog(
-        productName: widget.food.name,
-        category: widget.food.category,
-        imageUrls: _images,
+        food: widget.food,
+        entries: _entries,
         initialIndex: _currentIndex,
+        onAddToCart: widget.onAddToCart,
+        onGoToCart: widget.onGoToCart,
       ),
     );
   }
@@ -311,7 +353,7 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
 
   @override
   Widget build(BuildContext context) {
-    final hasImages = _images.isNotEmpty;
+    final hasImages = _entries.isNotEmpty;
 
     return GestureDetector(
       onTap: _openGallery,
@@ -326,17 +368,18 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                   children: [
                     PageView.builder(
                       controller: _pageController,
-                      itemCount: _images.length,
+                      itemCount: _entries.length,
                       onPageChanged: (index) {
                         if (mounted) {
                           setState(() {
                             _currentIndex = index;
                           });
+                          widget.onIndexChanged(index);
                         }
                       },
                       itemBuilder: (context, index) {
                         return Image.network(
-                          _images[index],
+                          _entries[index].imageUrl,
                           fit: BoxFit.cover,
                           width: double.infinity,
                           filterQuality: FilterQuality.medium,
@@ -357,7 +400,6 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                         );
                       },
                     ),
-
                     Positioned(
                       top: 10,
                       right: 10,
@@ -383,7 +425,7 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              '${_currentIndex + 1}/${_images.length}',
+                              '${_currentIndex + 1}/${_entries.length}',
                               style: const TextStyle(
                                 color: AppColors.white,
                                 fontSize: 11,
@@ -394,14 +436,13 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                         ),
                       ),
                     ),
-
                     Positioned(
                       left: 0,
                       right: 0,
                       bottom: 10,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_images.length, (index) {
+                        children: List.generate(_entries.length, (index) {
                           final isActive = index == _currentIndex;
 
                           return AnimatedContainer(
@@ -419,7 +460,6 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                         }),
                       ),
                     ),
-
                     Positioned.fill(
                       child: Align(
                         alignment: Alignment.center,
@@ -453,16 +493,18 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
 }
 
 class _ProductGalleryDialog extends StatefulWidget {
-  final String productName;
-  final String category;
-  final List<String> imageUrls;
+  final ProductItem food;
+  final List<ProductImageEntry> entries;
   final int initialIndex;
+  final VoidCallback? onAddToCart;
+  final VoidCallback? onGoToCart;
 
   const _ProductGalleryDialog({
-    required this.productName,
-    required this.category,
-    required this.imageUrls,
+    required this.food,
+    required this.entries,
     required this.initialIndex,
+    this.onAddToCart,
+    this.onGoToCart,
   });
 
   @override
@@ -473,10 +515,12 @@ class _ProductGalleryDialogState extends State<_ProductGalleryDialog> {
   late final PageController _pageController;
   late int _currentIndex;
 
+  ProductImageEntry get _currentEntry => widget.entries[_currentIndex];
+
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex.clamp(0, widget.imageUrls.length - 1);
+    _currentIndex = widget.initialIndex.clamp(0, widget.entries.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -497,13 +541,38 @@ class _ProductGalleryDialogState extends State<_ProductGalleryDialog> {
   }
 
   void _goToNext() {
-    if (_currentIndex < widget.imageUrls.length - 1) {
+    if (_currentIndex < widget.entries.length - 1) {
       _pageController.animateToPage(
         _currentIndex + 1,
         duration: const Duration(milliseconds: 320),
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  void _handleAddToCartOnly() {
+    widget.onAddToCart?.call();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.softBlack,
+        content: Text(
+          '${_currentEntry.title} added to cart',
+          style: const TextStyle(color: AppColors.white),
+        ),
+      ),
+    );
+  }
+
+  void _handleAddAndGoToCart() {
+    widget.onAddToCart?.call();
+    Navigator.pop(context);
+    widget.onGoToCart?.call();
+  }
+
+  void _handleGoToCart() {
+    Navigator.pop(context);
+    widget.onGoToCart?.call();
   }
 
   @override
@@ -519,8 +588,8 @@ class _ProductGalleryDialogState extends State<_ProductGalleryDialog> {
       ),
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: isMobile ? double.infinity : 980,
-          maxHeight: isMobile ? 620 : 760,
+          maxWidth: isMobile ? double.infinity : 1080,
+          maxHeight: isMobile ? 760 : 820,
         ),
         decoration: BoxDecoration(
           color: AppColors.softBlack,
@@ -534,157 +603,584 @@ class _ProductGalleryDialogState extends State<_ProductGalleryDialog> {
             ),
           ],
         ),
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                isMobile ? 14 : 20,
-                isMobile ? 14 : 18,
-                isMobile ? 10 : 14,
-                10,
-              ),
-              child: Row(
+        child: isMobile
+            ? Column(
                 children: [
+                  _GalleryHeader(
+                    title: _currentEntry.title,
+                    subtitle:
+                        '${widget.food.category} • ${_currentIndex + 1} of ${widget.entries.length}',
+                  ),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.productName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: isMobile ? 16 : 20,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.white,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _GalleryImageArea(
+                            pageController: _pageController,
+                            entries: widget.entries,
+                            currentIndex: _currentIndex,
+                            category: widget.food.category,
+                            isMobile: isMobile,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentIndex = index;
+                              });
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${widget.category} • ${_currentIndex + 1} of ${widget.imageUrls.length}',
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: Color(0xFFBDBDBD),
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 14),
+                          _ProductPreviewDetails(
+                            food: widget.food,
+                            entry: _currentEntry,
+                            galleryCount: widget.entries.length,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 14),
+                          _PreviewActionButtons(
+                            isMobile: true,
+                            isAvailable: widget.food.isAvailable,
+                            onAddToCart: widget.food.isAvailable
+                                ? _handleAddToCartOnly
+                                : null,
+                            onAddAndGoToCart: widget.food.isAvailable
+                                ? _handleAddAndGoToCart
+                                : null,
+                            onGoToCart: widget.onGoToCart != null
+                                ? _handleGoToCart
+                                : null,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.white),
+                ],
+              )
+            : Column(
+                children: [
+                  _GalleryHeader(
+                    title: _currentEntry.title,
+                    subtitle:
+                        '${widget.food.category} • ${_currentIndex + 1} of ${widget.entries.length}',
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: _GalleryImageArea(
+                              pageController: _pageController,
+                              entries: widget.entries,
+                              currentIndex: _currentIndex,
+                              category: widget.food.category,
+                              isMobile: isMobile,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentIndex = index;
+                                });
+                              },
+                              leftArrow: widget.entries.length > 1
+                                  ? _GalleryArrowButton(
+                                      icon: Icons.chevron_left_rounded,
+                                      onTap:
+                                          _currentIndex > 0 ? _goToPrevious : null,
+                                    )
+                                  : null,
+                              rightArrow: widget.entries.length > 1
+                                  ? _GalleryArrowButton(
+                                      icon: Icons.chevron_right_rounded,
+                                      onTap: _currentIndex <
+                                              widget.entries.length - 1
+                                          ? _goToNext
+                                          : null,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            flex: 4,
+                            child: Container(
+                              height: double.infinity,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlack,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: AppColors.charcoal),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: _ProductPreviewDetails(
+                                        food: widget.food,
+                                        entry: _currentEntry,
+                                        galleryCount: widget.entries.length,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _PreviewActionButtons(
+                                    isMobile: false,
+                                    isAvailable: widget.food.isAvailable,
+                                    onAddToCart: widget.food.isAvailable
+                                        ? _handleAddToCartOnly
+                                        : null,
+                                    onAddAndGoToCart: widget.food.isAvailable
+                                        ? _handleAddAndGoToCart
+                                        : null,
+                                    onGoToCart: widget.onGoToCart != null
+                                        ? _handleGoToCart
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+class _GalleryHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _GalleryHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 14 : 20,
+        isMobile ? 14 : 18,
+        isMobile ? 10 : 14,
+        10,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: isMobile ? 16 : 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFFBDBDBD),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  isMobile ? 12 : 18,
-                  8,
-                  isMobile ? 12 : 18,
-                  12,
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close, color: AppColors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GalleryImageArea extends StatelessWidget {
+  final PageController pageController;
+  final List<ProductImageEntry> entries;
+  final int currentIndex;
+  final String category;
+  final bool isMobile;
+  final ValueChanged<int> onPageChanged;
+  final Widget? leftArrow;
+  final Widget? rightArrow;
+
+  const _GalleryImageArea({
+    required this.pageController,
+    required this.entries,
+    required this.currentIndex,
+    required this.category,
+    required this.isMobile,
+    required this.onPageChanged,
+    this.leftArrow,
+    this.rightArrow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: double.infinity,
+            height: isMobile ? 320 : double.infinity,
+            color: AppColors.primaryBlack,
+            child: PageView.builder(
+              controller: pageController,
+              itemCount: entries.length,
+              onPageChanged: onPageChanged,
+              itemBuilder: (context, index) {
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Image.network(
+                    entries[index].imageUrl,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return _ImageFallback(
+                        isMobile: isMobile,
+                        category: category,
+                        showLoader: true,
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return _ImageFallback(
+                        isMobile: isMobile,
+                        category: category,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        if (leftArrow != null)
+          Positioned(
+            left: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(child: leftArrow!),
+          ),
+        if (rightArrow != null)
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(child: rightArrow!),
+          ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 14,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(entries.length, (index) {
+              final isActive = index == currentIndex;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                height: 8,
+                width: isActive ? 22 : 8,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.gold
+                      : AppColors.white.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        color: AppColors.primaryBlack,
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: widget.imageUrls.length,
-                          onPageChanged: (index) {
-                            setState(() {
-                              _currentIndex = index;
-                            });
-                          },
-                          itemBuilder: (context, index) {
-                            return InteractiveViewer(
-                              minScale: 1,
-                              maxScale: 4,
-                              child: Image.network(
-                                widget.imageUrls[index],
-                                fit: BoxFit.contain,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return _ImageFallback(
-                                    isMobile: isMobile,
-                                    category: widget.category,
-                                    showLoader: true,
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _ImageFallback(
-                                    isMobile: isMobile,
-                                    category: widget.category,
-                                  );
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-                    if (!isMobile && widget.imageUrls.length > 1)
-                      Positioned(
-                        left: 12,
-                        top: 0,
-                        bottom: 0,
-                        child: Center(
-                          child: _GalleryArrowButton(
-                            icon: Icons.chevron_left_rounded,
-                            onTap: _currentIndex > 0 ? _goToPrevious : null,
-                          ),
-                        ),
-                      ),
+class _ProductPreviewDetails extends StatelessWidget {
+  final ProductItem food;
+  final ProductImageEntry entry;
+  final int galleryCount;
 
-                    if (!isMobile && widget.imageUrls.length > 1)
-                      Positioned(
-                        right: 12,
-                        top: 0,
-                        bottom: 0,
-                        child: Center(
-                          child: _GalleryArrowButton(
-                            icon: Icons.chevron_right_rounded,
-                            onTap: _currentIndex < widget.imageUrls.length - 1
-                                ? _goToNext
-                                : null,
-                          ),
-                        ),
-                      ),
+  const _ProductPreviewDetails({
+    required this.food,
+    required this.entry,
+    required this.galleryCount,
+  });
 
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 14,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(widget.imageUrls.length, (index) {
-                          final isActive = index == _currentIndex;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _CategoryBadge(label: food.category),
+            if (food.isFeatured)
+              const _MiniBadge(
+                label: 'Featured',
+                icon: Icons.star_rounded,
+              ),
+            if (food.isNewArrival)
+              const _MiniBadge(
+                label: 'New',
+                icon: Icons.local_fire_department_outlined,
+              ),
+            if (food.isBestSeller)
+              const _MiniBadge(
+                label: 'Best Seller',
+                icon: Icons.workspace_premium_outlined,
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          entry.title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'GHS ${entry.price.toStringAsFixed(2)}',
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.gold,
+          ),
+        ),
+        const SizedBox(height: 14),
+        _DetailTile(
+          label: 'Description',
+          value: entry.description,
+        ),
+        const SizedBox(height: 12),
+        _DetailTile(
+          label: 'Category',
+          value: food.category,
+        ),
+        const SizedBox(height: 12),
+        _DetailTile(
+          label: 'Collection',
+          value: food.collection,
+        ),
+        const SizedBox(height: 12),
+        _DetailTile(
+          label: 'Availability',
+          value: food.isAvailable ? 'In stock' : 'Currently unavailable',
+          valueColor: food.isAvailable
+              ? const Color(0xFF9BE59B)
+              : const Color(0xFFFF8A80),
+        ),
+        if (galleryCount > 0) ...[
+          const SizedBox(height: 12),
+          _DetailTile(
+            label: 'Gallery',
+            value: '$galleryCount image(s)',
+          ),
+        ],
+      ],
+    );
+  }
+}
 
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 220),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 8,
-                            width: isActive ? 22 : 8,
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? AppColors.gold
-                                  : AppColors.white.withValues(alpha: 0.35),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ],
-                ),
+class _DetailTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _DetailTile({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greyText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? AppColors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewActionButtons extends StatelessWidget {
+  final bool isMobile;
+  final bool isAvailable;
+  final VoidCallback? onAddToCart;
+  final VoidCallback? onAddAndGoToCart;
+  final VoidCallback? onGoToCart;
+
+  const _PreviewActionButtons({
+    required this.isMobile,
+    required this.isAvailable,
+    this.onAddToCart,
+    this.onAddAndGoToCart,
+    this.onGoToCart,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: _PrimaryActionButton(
+            label: isAvailable ? 'Add to Cart' : 'Unavailable',
+            icon: Icons.add_shopping_cart_rounded,
+            onTap: isAvailable ? onAddToCart : null,
+            isGold: true,
+            isMobile: isMobile,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: _PrimaryActionButton(
+            label: isAvailable ? 'Add & Go to Cart' : 'Go to Cart',
+            icon: Icons.shopping_bag_outlined,
+            onTap: isAvailable ? onAddAndGoToCart : onGoToCart,
+            isGold: false,
+            isMobile: isMobile,
+          ),
+        ),
+        if (onGoToCart != null && isAvailable) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: _PrimaryActionButton(
+              label: 'View Cart',
+              icon: Icons.arrow_forward_rounded,
+              onTap: onGoToCart,
+              isGold: false,
+              isMobile: isMobile,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PrimaryActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool isGold;
+  final bool isMobile;
+
+  const _PrimaryActionButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    required this.isGold,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 14 : 16,
+          vertical: isMobile ? 13 : 14,
+        ),
+        decoration: BoxDecoration(
+          color: disabled
+              ? AppColors.charcoal
+              : (isGold
+                  ? AppColors.gold
+                  : AppColors.white.withValues(alpha: 0.08)),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: disabled
+                ? AppColors.charcoal
+                : (isGold
+                    ? AppColors.gold
+                    : AppColors.white.withValues(alpha: 0.12)),
+          ),
+          boxShadow: disabled || !isGold
+              ? []
+              : [
+                  BoxShadow(
+                    color: AppColors.gold.withValues(alpha: 0.20),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: isMobile ? 17 : 18,
+              color: disabled
+                  ? AppColors.greyText
+                  : (isGold ? AppColors.primaryBlack : AppColors.white),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 14,
+                fontWeight: FontWeight.w700,
+                color: disabled
+                    ? AppColors.greyText
+                    : (isGold ? AppColors.primaryBlack : AppColors.white),
               ),
             ),
           ],

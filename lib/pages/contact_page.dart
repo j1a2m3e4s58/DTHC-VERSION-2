@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'track_order_page.dart';
 import 'lookbook_page.dart';
 import 'payment_delivery_page.dart';
 import '../core/app_colors.dart';
@@ -71,6 +71,12 @@ class _ContactPageState extends State<ContactPage> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const HomePage()),
+                );
+              },
+              onTrackOrderTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TrackOrderPage()),
                 );
               },
               onMenuTap: () {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'track_order_page.dart';
 import 'contact_page.dart';
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
@@ -41,6 +41,12 @@ class PaymentDeliveryPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const MenuPage()),
+                );
+              },
+              onTrackOrderTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TrackOrderPage()),
                 );
               },
               onSpecialPacksTap: () {

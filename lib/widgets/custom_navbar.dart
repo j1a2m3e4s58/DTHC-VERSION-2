@@ -13,6 +13,7 @@ class CustomNavbar extends StatelessWidget {
   final VoidCallback? onContactTap;
   final VoidCallback? onLookbookTap;
   final VoidCallback? onDeliveryTap;
+  final VoidCallback? onTrackOrderTap;
   final VoidCallback? onOrderNowTap;
   final VoidCallback? onAdminTap;
 
@@ -26,6 +27,7 @@ class CustomNavbar extends StatelessWidget {
     this.onContactTap,
     this.onLookbookTap,
     this.onDeliveryTap,
+    this.onTrackOrderTap,
     this.onOrderNowTap,
     this.onAdminTap,
   });
@@ -88,6 +90,7 @@ class CustomNavbar extends StatelessWidget {
                         onContactTap: onContactTap,
                         onLookbookTap: onLookbookTap,
                         onDeliveryTap: onDeliveryTap,
+                        onTrackOrderTap: onTrackOrderTap,
                         onOrderNowTap: onOrderNowTap,
                       ),
                     ],
@@ -103,6 +106,7 @@ class CustomNavbar extends StatelessWidget {
                     onContactTap: onContactTap,
                     onLookbookTap: onLookbookTap,
                     onDeliveryTap: onDeliveryTap,
+                    onTrackOrderTap: onTrackOrderTap,
                     onOrderNowTap: onOrderNowTap,
                     onAdminTap: onAdminTap,
                   ),
@@ -124,6 +128,7 @@ class _DesktopNavbarLayout extends StatelessWidget {
   final VoidCallback? onContactTap;
   final VoidCallback? onLookbookTap;
   final VoidCallback? onDeliveryTap;
+  final VoidCallback? onTrackOrderTap;
   final VoidCallback? onOrderNowTap;
   final VoidCallback? onAdminTap;
 
@@ -138,6 +143,7 @@ class _DesktopNavbarLayout extends StatelessWidget {
     this.onContactTap,
     this.onLookbookTap,
     this.onDeliveryTap,
+    this.onTrackOrderTap,
     this.onOrderNowTap,
     this.onAdminTap,
   });
@@ -164,6 +170,7 @@ class _DesktopNavbarLayout extends StatelessWidget {
             onContactTap: onContactTap,
             onLookbookTap: onLookbookTap,
             onDeliveryTap: onDeliveryTap,
+            onTrackOrderTap: onTrackOrderTap,
           ),
         ),
         SizedBox(width: isTablet ? 12 : 18),
@@ -252,6 +259,7 @@ class _DesktopNavLinks extends StatelessWidget {
   final VoidCallback? onContactTap;
   final VoidCallback? onLookbookTap;
   final VoidCallback? onDeliveryTap;
+  final VoidCallback? onTrackOrderTap;
 
   const _DesktopNavLinks({
     required this.activeItem,
@@ -264,6 +272,7 @@ class _DesktopNavLinks extends StatelessWidget {
     this.onContactTap,
     this.onLookbookTap,
     this.onDeliveryTap,
+    this.onTrackOrderTap,
   });
 
   @override
@@ -309,6 +318,13 @@ class _DesktopNavLinks extends StatelessWidget {
                 activeItem == 'Payment & Delivery',
             compact: compact,
             onTap: onDeliveryTap,
+          ),
+          _NavButton(
+            title: 'Track Order',
+            icon: Icons.local_shipping_rounded,
+            active: activeItem == 'Track Order',
+            compact: compact,
+            onTap: onTrackOrderTap,
           ),
           _NavButton(
             title: cartTitle,
@@ -455,6 +471,7 @@ class _MobileMenuButton extends StatelessWidget {
   final VoidCallback? onContactTap;
   final VoidCallback? onLookbookTap;
   final VoidCallback? onDeliveryTap;
+  final VoidCallback? onTrackOrderTap;
   final VoidCallback? onOrderNowTap;
 
   const _MobileMenuButton({
@@ -467,6 +484,7 @@ class _MobileMenuButton extends StatelessWidget {
     this.onContactTap,
     this.onLookbookTap,
     this.onDeliveryTap,
+    this.onTrackOrderTap,
     this.onOrderNowTap,
   });
 
@@ -493,6 +511,8 @@ class _MobileMenuButton extends StatelessWidget {
           onLookbookTap?.call();
         } else if (value == 'Delivery') {
           onDeliveryTap?.call();
+        } else if (value == 'Track Order') {
+          onTrackOrderTap?.call();
         } else if (value == 'Cart') {
           onCartTap?.call();
         } else if (value == 'Contact') {
@@ -557,6 +577,12 @@ class _MobileMenuButton extends StatelessWidget {
                       activeItem == 'Delivery' ||
                       activeItem == 'Payment & Delivery',
                   onTap: () => Navigator.pop(context, 'Delivery'),
+                ),
+                _MobileMenuAction(
+                  title: 'Track Order',
+                  icon: Icons.local_shipping_rounded,
+                  active: activeItem == 'Track Order',
+                  onTap: () => Navigator.pop(context, 'Track Order'),
                 ),
                 _MobileMenuAction(
                   title: cartTitle,
