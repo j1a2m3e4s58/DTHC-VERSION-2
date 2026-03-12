@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'contact_page.dart';
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
 import '../models/food_item.dart';
@@ -70,6 +70,12 @@ class CollectionsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const MenuPage()),
         );
       },
+      onContactTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ContactPage()),
+         );
+       },
       onSpecialPacksTap: () {},
       onCartTap: () {
         Navigator.push(
@@ -77,13 +83,7 @@ class CollectionsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const CartPage()),
         );
       },
-      onContactTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contact page will be connected next.'),
-          ),
-        );
-      },
+      
       onLookbookTap: () {
         Navigator.push(
           context,
@@ -433,13 +433,7 @@ class CollectionProductsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const CartPage()),
         );
       },
-      onContactTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contact page will be connected next.'),
-          ),
-        );
-      },
+    
       onLookbookTap: () {
         Navigator.push(
           context,

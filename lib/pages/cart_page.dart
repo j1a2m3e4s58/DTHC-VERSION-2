@@ -10,6 +10,7 @@ import '../widgets/custom_navbar.dart';
 import 'checkout_page.dart';
 import 'home_page.dart';
 import 'menu_page.dart';
+import 'contact_page.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -32,6 +33,12 @@ class CartPage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HomePage()),
               );
             },
+            onContactTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ContactPage()),
+              );
+            },
             onTrackOrderTap: () {
               Navigator.push(
                 context,
@@ -48,14 +55,6 @@ class CartPage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const MenuPage()),
-              );
-            },
-            onCartTap: () {},
-            onContactTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Contact page will be connected next.'),
-                ),
               );
             },
             onLookbookTap: () {
