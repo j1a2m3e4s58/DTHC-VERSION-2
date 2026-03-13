@@ -17,6 +17,7 @@ class CustomerOrder {
 
   final String paymentStatus;
   final String paymentProofStatus;
+  final String paymentProofUrl;
   final bool paymentUpdateSent;
 
   bool isNew;
@@ -38,6 +39,7 @@ class CustomerOrder {
     this.deliveryZoneName = '',
     this.paymentStatus = 'Pending',
     this.paymentProofStatus = 'Not Sent',
+    this.paymentProofUrl = '',
     this.paymentUpdateSent = false,
     this.isNew = true,
     this.isDelivered = false,
@@ -60,6 +62,7 @@ class CustomerOrder {
       'deliveryZoneName': deliveryZoneName,
       'paymentStatus': paymentStatus,
       'paymentProofStatus': paymentProofStatus,
+      'paymentProofUrl': paymentProofUrl,
       'paymentUpdateSent': paymentUpdateSent,
       'isNew': isNew,
       'isDelivered': isDelivered,
@@ -101,6 +104,7 @@ class CustomerOrder {
       deliveryZoneName: (map['deliveryZoneName'] ?? '').toString(),
       paymentStatus: (map['paymentStatus'] ?? 'Pending').toString(),
       paymentProofStatus: (map['paymentProofStatus'] ?? 'Not Sent').toString(),
+      paymentProofUrl: (map['paymentProofUrl'] ?? '').toString(),
       paymentUpdateSent: (map['paymentUpdateSent'] ?? false) == true,
       isNew: (map['isNew'] ?? true) == true,
       isDelivered: (map['isDelivered'] ?? false) == true,
@@ -123,6 +127,7 @@ class CustomerOrder {
     String? deliveryZoneName,
     String? paymentStatus,
     String? paymentProofStatus,
+    String? paymentProofUrl,
     bool? paymentUpdateSent,
     bool? isNew,
     bool? isDelivered,
@@ -143,6 +148,7 @@ class CustomerOrder {
       deliveryZoneName: deliveryZoneName ?? this.deliveryZoneName,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       paymentProofStatus: paymentProofStatus ?? this.paymentProofStatus,
+      paymentProofUrl: paymentProofUrl ?? this.paymentProofUrl,
       paymentUpdateSent: paymentUpdateSent ?? this.paymentUpdateSent,
       isNew: isNew ?? this.isNew,
       isDelivered: isDelivered ?? this.isDelivered,

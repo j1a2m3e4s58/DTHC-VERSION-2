@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../core/app_colors.dart';
 import '../../data/order_controller.dart';
 import '../../models/customer_order.dart';
 import '../../models/order_item.dart';
-
 
 class AdminOrdersPage extends StatefulWidget {
   const AdminOrdersPage({super.key});
@@ -569,9 +569,10 @@ class _PremiumOrderCard extends StatelessWidget {
   Color _paymentProofColor() {
     switch (order.paymentProofStatus) {
       case 'Received':
-        return AppColors.gold;
-      case 'Reviewed':
+      case 'Pending Review':
         return const Color(0xFFE5C15A);
+      case 'Reviewed':
+        return AppColors.gold;
       default:
         return AppColors.charcoal;
     }
@@ -702,6 +703,13 @@ class _PremiumOrderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _InfoLine(
+                  icon: Icons.map_outlined,
+                  text: order.deliveryZoneName.isEmpty
+                      ? 'No delivery zone saved'
+                      : order.deliveryZoneName,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
                   icon: Icons.local_shipping_outlined,
                   text: order.trackingCode.isEmpty
                       ? 'Tracking code not assigned'
@@ -753,6 +761,10 @@ class _PremiumOrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
+                if (order.paymentProofUrl.isNotEmpty) ...[
+                  _PaymentProofPreview(order: order),
+                  const SizedBox(height: 14),
+                ],
                 _PaymentActionGrid(order: order),
               ],
             ),
@@ -800,7 +812,8 @@ class _PremiumOrderCard extends StatelessWidget {
                   'Payment Proof',
                   order.paymentProofStatus,
                   highlightGold: order.paymentProofStatus == 'Received' ||
-                      order.paymentProofStatus == 'Reviewed',
+                      order.paymentProofStatus == 'Reviewed' ||
+                      order.paymentProofStatus == 'Pending Review',
                 ),
                 const SizedBox(height: 10),
                 _TextRow(
@@ -820,6 +833,89 @@ class _PremiumOrderCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentProofPreview extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _PaymentProofPreview({
+    required this.order,
+  });
+
+  Future<void> _openImage() async {
+    final uri = Uri.parse(order.paymentProofUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.gold),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Payment Proof Image',
+            style: TextStyle(
+              color: AppColors.gold,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: double.infinity,
+              height: isMobile ? 220 : 280,
+              color: AppColors.charcoal,
+              child: Image.network(
+                order.paymentProofUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.gold,
+                      size: 40,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _openImage,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.gold,
+                  side: const BorderSide(color: AppColors.gold),
+                ),
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: const Text(
+                  'Open Full Image',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -881,6 +977,17 @@ class _PaymentActionGrid extends StatelessWidget {
         },
       ),
       _MiniActionButton(
+        label: 'Pending Review',
+        icon: Icons.hourglass_top_rounded,
+        isPrimary: order.paymentProofStatus == 'Pending Review',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(
+            order.id,
+            'Pending Review',
+          );
+        },
+      ),
+      _MiniActionButton(
         label: 'Proof Reviewed',
         icon: Icons.fact_check_outlined,
         isPrimary: order.paymentProofStatus == 'Reviewed',
@@ -893,7 +1000,7 @@ class _PaymentActionGrid extends StatelessWidget {
         icon: Icons.hide_source_outlined,
         isPrimary: order.paymentProofStatus == 'Not Sent',
         onTap: () async {
-          await orderController.updatePaymentProofStatus(order.id, 'Not Sent');
+          await orderController.clearPaymentProof(order.id);
         },
       ),
       _MiniActionButton(
@@ -1498,6 +1605,7 @@ class _OrderActions extends StatelessWidget {
     );
   }
 }
+
 class _InfoSection extends StatelessWidget {
   final String title;
   final Widget child;

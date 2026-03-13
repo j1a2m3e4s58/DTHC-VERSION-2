@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_colors.dart';
+import '../data/delivery_zone_controller.dart';
 import '../data/store_controller.dart';
 import '../models/delivery_zone.dart';
 import '../models/store_settings.dart';
@@ -20,12 +21,14 @@ class PaymentDeliveryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<StoreController>();
-    final storeSettings = controller.getStoreSettings();
-    final deliveryZones = controller.getDeliveryZones();
-    final paymentMethods = controller.getPaymentMethods();
-    final deliverySteps = controller.getDeliverySteps();
-    final returnExchangeNotes = controller.getReturnExchangeNotes();
+    final storeController = context.watch<StoreController>();
+    final deliveryZoneController = context.watch<DeliveryZoneController>();
+
+    final storeSettings = storeController.getStoreSettings();
+    final activeDeliveryZones = deliveryZoneController.activeZones;
+    final paymentMethods = storeController.getPaymentMethods();
+    final deliverySteps = storeController.getDeliverySteps();
+    final returnExchangeNotes = storeController.getReturnExchangeNotes();
 
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
@@ -95,7 +98,7 @@ class PaymentDeliveryPage extends StatelessWidget {
             _PaymentHeroSection(storeSettings: storeSettings),
             _DeliveryZonesSection(
               storeSettings: storeSettings,
-              deliveryZones: deliveryZones,
+              deliveryZones: activeDeliveryZones,
             ),
             _PaymentMethodsSection(paymentMethods: paymentMethods),
             _DeliveryStepsSection(
@@ -271,7 +274,7 @@ class _HeroInfoCard extends StatelessWidget {
             subtitle: storeSettings.address,
           ),
           const SizedBox(height: 14),
-          _MiniInfoRow(
+          const _MiniInfoRow(
             icon: Icons.local_shipping_outlined,
             title: 'Zone-Based Delivery',
             subtitle: 'Pricing now follows the selected delivery zone.',
@@ -359,11 +362,12 @@ class _DeliveryZonesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
+        horizontal: isMobile ? 16 : 32,
         vertical: 10,
       ),
       child: Center(
@@ -383,8 +387,8 @@ class _DeliveryZonesSection extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 deliveryZones.isEmpty
-                    ? 'Delivery zones are currently being updated. Please contact DTHC before placing your order.'
-                    : 'These delivery zones are managed directly by DTHC admin. Customers will only see the active zones currently available.',
+                    ? 'Delivery zones are currently unavailable. Please contact DTHC before placing your order.'
+                    : 'These delivery zones are managed directly from the DTHC admin panel. Only active zones are shown here and fees update automatically.',
                 style: const TextStyle(
                   color: Color(0xFFBDBDBD),
                   fontSize: 15,
@@ -402,7 +406,7 @@ class _DeliveryZonesSection extends StatelessWidget {
                     border: Border.all(color: AppColors.charcoal),
                   ),
                   child: Text(
-                    'No delivery zones have been added yet. Please check back soon or contact DTHC on ${storeSettings.phoneNumber}.',
+                    'No active delivery zones have been added yet. Please check back soon or contact DTHC on ${storeSettings.phoneNumber}.',
                     style: const TextStyle(
                       color: Color(0xFFBDBDBD),
                       fontSize: 14,
@@ -415,7 +419,12 @@ class _DeliveryZonesSection extends StatelessWidget {
                   spacing: 18,
                   runSpacing: 18,
                   children: deliveryZones
-                      .map((zone) => _DeliveryZoneCard(zone: zone))
+                      .map(
+                        (zone) => _DeliveryZoneCard(
+                          zone: zone,
+                          cardWidth: isMobile ? double.infinity : 400,
+                        ),
+                      )
                       .toList(),
                 ),
             ],
@@ -428,15 +437,17 @@ class _DeliveryZonesSection extends StatelessWidget {
 
 class _DeliveryZoneCard extends StatelessWidget {
   final DeliveryZone zone;
+  final double cardWidth;
 
   const _DeliveryZoneCard({
     required this.zone,
+    required this.cardWidth,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 400,
+      width: cardWidth,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
@@ -509,15 +520,44 @@ class _DeliveryZoneCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.charcoal,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [],
+              children: [
+                const Text(
+                  'Delivery Fee',
+                  style: TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'GHS ${zone.fee.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'This fee is synced from admin settings and updates automatically when changed.',
+                  style: TextStyle(
+                    color: Color(0xFFD0D0D0),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -536,11 +576,12 @@ class _PaymentMethodsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
+        horizontal: isMobile ? 16 : 32,
         vertical: 10,
       ),
       child: Center(
@@ -571,7 +612,12 @@ class _PaymentMethodsSection extends StatelessWidget {
                 spacing: 18,
                 runSpacing: 18,
                 children: paymentMethods
-                    .map((method) => _PaymentMethodCard(method: method))
+                    .map(
+                      (method) => _PaymentMethodCard(
+                        method: method,
+                        cardWidth: isMobile ? double.infinity : 400,
+                      ),
+                    )
                     .toList(),
               ),
             ],
@@ -584,9 +630,11 @@ class _PaymentMethodsSection extends StatelessWidget {
 
 class _PaymentMethodCard extends StatelessWidget {
   final Map<String, dynamic> method;
+  final double cardWidth;
 
   const _PaymentMethodCard({
     required this.method,
+    required this.cardWidth,
   });
 
   @override
@@ -596,7 +644,7 @@ class _PaymentMethodCard extends StatelessWidget {
     final iconKey = '${method['icon'] ?? ''}';
 
     return Container(
-      width: 400,
+      width: cardWidth,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.softBlack,
@@ -834,11 +882,12 @@ class _ReturnExchangeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 768;
 
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        horizontal: width < 768 ? 16 : 32,
+        horizontal: isMobile ? 16 : 32,
         vertical: 40,
       ),
       child: Center(
@@ -872,6 +921,7 @@ class _ReturnExchangeSection extends StatelessWidget {
                   return _ReturnNoteCard(
                     title: '${note['title'] ?? ''}',
                     subtitle: '${note['subtitle'] ?? ''}',
+                    cardWidth: isMobile ? double.infinity : 400,
                   );
                 }).toList(),
               ),
@@ -886,16 +936,18 @@ class _ReturnExchangeSection extends StatelessWidget {
 class _ReturnNoteCard extends StatelessWidget {
   final String title;
   final String subtitle;
+  final double cardWidth;
 
   const _ReturnNoteCard({
     required this.title,
     required this.subtitle,
+    required this.cardWidth,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 400,
+      width: cardWidth,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.softBlack,

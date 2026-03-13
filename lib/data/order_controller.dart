@@ -105,7 +105,7 @@ class OrderController extends ChangeNotifier {
     });
   }
 
-  Future<void> placeOrder(CustomerOrder order) async {
+  Future<String> placeOrder(CustomerOrder order) async {
     final orderRef = _ordersRef.push();
     final orderId =
         orderRef.key ?? DateTime.now().millisecondsSinceEpoch.toString();
@@ -123,14 +123,17 @@ class OrderController extends ChangeNotifier {
       createdAt: order.createdAt,
       paymentMethod: order.paymentMethod,
       trackingCode: order.trackingCode,
+      deliveryZoneName: order.deliveryZoneName,
       paymentStatus: order.paymentStatus,
       paymentProofStatus: order.paymentProofStatus,
+      paymentProofUrl: order.paymentProofUrl,
       paymentUpdateSent: order.paymentUpdateSent,
       isNew: order.isNew,
       isDelivered: order.isDelivered,
     );
 
     await orderRef.set(firebaseOrder.toMap());
+    return orderId;
   }
 
   Future<void> markAllOrdersAsSeen() async {
@@ -168,6 +171,24 @@ class OrderController extends ChangeNotifier {
     });
   }
 
+  Future<void> updatePaymentProof({
+    required String orderId,
+    required String paymentProofUrl,
+    String paymentProofStatus = 'Pending Review',
+  }) async {
+    await _ordersRef.child(orderId).update({
+      'paymentProofUrl': paymentProofUrl,
+      'paymentProofStatus': paymentProofStatus,
+    });
+  }
+
+  Future<void> clearPaymentProof(String orderId) async {
+    await _ordersRef.child(orderId).update({
+      'paymentProofUrl': '',
+      'paymentProofStatus': 'Not Sent',
+    });
+  }
+
   Future<void> markPaymentUpdateSent(String orderId, bool sent) async {
     await _ordersRef.child(orderId).update({
       'paymentUpdateSent': sent,
@@ -176,6 +197,26 @@ class OrderController extends ChangeNotifier {
 
   Future<void> deleteOrder(String orderId) async {
     await _ordersRef.child(orderId).remove();
+  }
+
+  CustomerOrder? getOrderById(String orderId) {
+    try {
+      return _orders.firstWhere((order) => order.id == orderId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  CustomerOrder? getOrderByTrackingCode(String trackingCode) {
+    try {
+      return _orders.firstWhere(
+        (order) =>
+            order.trackingCode.trim().toLowerCase() ==
+            trackingCode.trim().toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

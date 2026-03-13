@@ -5,11 +5,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_colors.dart';
 import '../data/cart_controller.dart';
+import '../data/delivery_zone_controller.dart';
 import '../data/order_controller.dart';
-import '../data/store_controller.dart';
 import '../models/customer_order.dart';
 import '../models/delivery_zone.dart';
 import '../models/order_item.dart';
+import 'payment_delivery_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'order_success_page.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -60,7 +63,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     noteController.dispose();
     super.dispose();
   }
-
+  @override
+  void initState() {
+  super.initState();
+  _loadSavedCustomerDetails();
+}
   String _generateTrackingCode() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final suffix = timestamp.length >= 6
@@ -73,6 +80,38 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return cartController.selectedDeliveryFee;
   }
 
+  void _syncSelectedZoneWithAvailableZones(
+    CartController cartController,
+    List<DeliveryZone> deliveryZones,
+  ) {
+    final selectedZone = cartController.selectedDeliveryZone;
+
+    if (selectedZone == null) return;
+
+    final stillExists = deliveryZones.any((zone) => zone.id == selectedZone.id);
+
+    if (!stillExists) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        cartController.clearSelectedDeliveryZone();
+      });
+    }
+  }
+  Future<void> _loadSavedCustomerDetails() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  nameController.text = prefs.getString('checkout_name') ?? '';
+  phoneController.text = prefs.getString('checkout_phone') ?? '';
+  addressController.text = prefs.getString('checkout_address') ?? '';
+}
+
+Future<void> _saveCustomerDetails() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  await prefs.setString('checkout_name', nameController.text.trim());
+  await prefs.setString('checkout_phone', phoneController.text.trim());
+  await prefs.setString('checkout_address', addressController.text.trim());
+}
   Future<void> _placeOrder() async {
     final cartController = context.read<CartController>();
     final orderController = context.read<OrderController>();
@@ -134,28 +173,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
         isNew: true,
         isDelivered: false,
       );
-
-      await orderController.placeOrder(order);
+      await _saveCustomerDetails();
+      final createdOrderId = await orderController.placeOrder(order);
 
       if (!mounted) return;
 
       cartController.clearCart();
 
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return _OrderPlacedDialog(
-            paymentMethod: _selectedPaymentMethod,
-            trackingCode: trackingCode,
-            totalAmount: order.total,
-            momoNumber: _momoNumber,
-            accountName: _accountName,
-          );
-        },
-      );
-
       if (!mounted) return;
-      Navigator.pop(context);
+
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (_) => OrderSuccessPage(
+      orderId: createdOrderId,
+      paymentMethod: _selectedPaymentMethod,
+      trackingCode: trackingCode,
+      totalAmount: order.total,
+      momoNumber: _momoNumber,
+      accountName: _accountName,
+    ),
+  ),
+);
     } catch (e) {
       if (!mounted) return;
 
@@ -176,9 +215,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
-    final storeController = context.watch<StoreController>();
-    final deliveryZones = storeController.getDeliveryZones();
+    final deliveryZoneController = context.watch<DeliveryZoneController>();
+    final deliveryZones = deliveryZoneController.activeZones;
     final items = cartController.items;
+
+    _syncSelectedZoneWithAvailableZones(cartController, deliveryZones);
+
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 800;
     final isTablet = width >= 800 && width < 1100;
@@ -215,6 +257,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           children: [
                             _buildTopIntro(isMobile: true),
                             const SizedBox(height: 18),
+                            _buildCheckoutInfoBanner(
+                              isMobile: true,
+                              deliveryZones: deliveryZones,
+                              cartController: cartController,
+                            ),
+                            const SizedBox(height: 18),
                             _buildCustomerFormCard(isMobile: true),
                             const SizedBox(height: 18),
                             _buildDeliveryZoneCard(
@@ -238,6 +286,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               child: Column(
                                 children: [
                                   _buildTopIntro(isMobile: false),
+                                  const SizedBox(height: 20),
+                                  _buildCheckoutInfoBanner(
+                                    isMobile: false,
+                                    deliveryZones: deliveryZones,
+                                    cartController: cartController,
+                                  ),
                                   const SizedBox(height: 20),
                                   _buildCustomerFormCard(isMobile: false),
                                   const SizedBox(height: 20),
@@ -301,6 +355,107 @@ class _CheckoutPageState extends State<CheckoutPage> {
               color: const Color(0xFFBDBDBD),
               fontWeight: FontWeight.w500,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckoutInfoBanner({
+    required bool isMobile,
+    required List<DeliveryZone> deliveryZones,
+    required CartController cartController,
+  }) {
+    final hasZones = deliveryZones.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 16 : 18),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                height: 46,
+                width: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: AppColors.primaryBlack,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Payment & Delivery Info',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            hasZones
+                ? 'DTHC delivery zones and fees are synced live from admin settings. Choose your zone below and your total will update automatically.'
+                : 'There are currently no active delivery zones. You can review delivery information first or contact DTHC before placing this order.',
+            style: const TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 13.5,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _CheckoutActionChip(
+                icon: Icons.local_shipping_outlined,
+                label: 'View Payment & Delivery',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PaymentDeliveryPage(),
+                    ),
+                  );
+                },
+              ),
+              if (cartController.hasSelectedDeliveryZone)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlack,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: AppColors.gold),
+                  ),
+                  child: Text(
+                    '${cartController.selectedDeliveryZoneName} • GHS ${cartController.selectedDeliveryFee.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -506,13 +661,31 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: AppColors.charcoal),
               ),
-              child: const Text(
-                'No delivery zones are available right now. Please contact DTHC before placing your order.',
-                style: TextStyle(
-                  color: Color(0xFFBDBDBD),
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'No active delivery zones are available right now. Please contact DTHC before placing your order.',
+                    style: TextStyle(
+                      color: Color(0xFFBDBDBD),
+                      fontWeight: FontWeight.w500,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _CheckoutActionChip(
+                    icon: Icons.open_in_new_rounded,
+                    label: 'Open Payment & Delivery Page',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PaymentDeliveryPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             )
           else
@@ -932,6 +1105,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             ),
           ),
+          _buildSelectedZoneSummary(cartController),
+          const SizedBox(height: 16),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: AppColors.charcoal),
@@ -988,13 +1163,77 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     )
                   : Text(
                       _selectedPaymentMethod == 'Pay on Delivery'
-                          ? 'Place Order'
+                          ? 'Place Order for Confirmation'
                           : 'Place Order & View Payment Instructions',
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
                     ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedZoneSummary(CartController cartController) {
+    if (!cartController.hasSelectedDeliveryZone) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlack,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.charcoal),
+        ),
+        child: const Text(
+          'Select a delivery zone to apply the correct delivery fee before placing your order.',
+          style: TextStyle(
+            color: Color(0xFFBDBDBD),
+            fontSize: 13,
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Selected Delivery Zone',
+            style: TextStyle(
+              color: Color(0xFFBDBDBD),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            cartController.selectedDeliveryZoneName,
+            style: const TextStyle(
+              color: AppColors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Delivery fee: GHS ${cartController.selectedDeliveryFee.toStringAsFixed(2)}',
+            style: const TextStyle(
+              color: AppColors.gold,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -1453,6 +1692,53 @@ class _CopyChip extends StatelessWidget {
           children: [
             const Icon(
               Icons.copy_rounded,
+              size: 16,
+              color: AppColors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckoutActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _CheckoutActionChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlack,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.charcoal),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
               size: 16,
               color: AppColors.white,
             ),
