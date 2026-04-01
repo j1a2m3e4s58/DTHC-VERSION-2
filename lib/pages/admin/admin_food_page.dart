@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../data/theme_controller.dart';
 import '../../models/food_item.dart';
+import '../../widgets/admin_image_upload_field.dart';
 
 class AdminFoodPage extends StatefulWidget {
   const AdminFoodPage({super.key});
@@ -288,9 +289,14 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              _buildField(
+                              AdminImageUploadField(
                                 controller: group.imageUrlController,
-                                label: 'Image URL',
+                                storageFolder: 'products',
+                                decoration: _inputDecoration('Image URL'),
+                                style: TextStyle(color: palette.textPrimary),
+                                buttonForegroundColor: AppColors.gold,
+                                helperText:
+                                    'Paste an image URL or upload a product image from your device.',
                               ),
                               const SizedBox(height: 10),
                               _buildField(

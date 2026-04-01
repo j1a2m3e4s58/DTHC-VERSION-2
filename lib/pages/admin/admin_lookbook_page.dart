@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
+import '../../widgets/admin_image_upload_field.dart';
 
 class AdminLookbookPage extends StatelessWidget {
   const AdminLookbookPage({super.key});
@@ -696,15 +697,45 @@ class _LookbookEditorPageState extends State<_LookbookEditorPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    _buildField(
+                    AdminImageUploadField(
                       controller: _imageUrlController,
-                      label: 'Image URL',
+                      storageFolder: 'lookbook',
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Image URL is required';
                         }
                         return null;
                       },
+                      style: const TextStyle(color: AppColors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Image URL',
+                        labelStyle: const TextStyle(color: AppColors.greyText),
+                        filled: true,
+                        fillColor: AppColors.primaryBlack,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.charcoal),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.charcoal),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.gold),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.danger),
+                        ),
+                      ),
+                      buttonForegroundColor: AppColors.gold,
+                      helperText:
+                          'Paste an image URL or upload a lookbook image from your device.',
                     ),
                     const SizedBox(height: 14),
                     _buildField(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../models/hero_banner_item.dart';
+import '../../widgets/admin_image_upload_field.dart';
 
 class AdminHeroPage extends StatefulWidget {
   const AdminHeroPage({super.key});
@@ -74,9 +75,14 @@ class _AdminHeroPageState extends State<AdminHeroPage> {
                         maxLines: 3,
                       ),
                       const SizedBox(height: 12),
-                      _buildField(
+                      AdminImageUploadField(
                         controller: imageUrlController,
-                        label: 'Banner Image URL',
+                        storageFolder: 'hero_banners',
+                        decoration: _inputDecoration('Banner Image URL'),
+                        style: const TextStyle(color: AppColors.white),
+                        buttonForegroundColor: AppColors.gold,
+                        helperText:
+                            'Paste a banner image URL or upload a banner image from your device.',
                       ),
                       const SizedBox(height: 12),
                       _buildField(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../models/food_pack.dart';
+import '../../widgets/admin_image_upload_field.dart';
 
 class AdminCollectionsPage extends StatefulWidget {
   const AdminCollectionsPage({super.key});
@@ -654,17 +655,7 @@ class _CollectionFormDialogState extends State<_CollectionFormDialog> {
                   },
                 ),
                 const SizedBox(height: 14),
-                _buildField(
-                  controller: _imageUrlController,
-                  label: 'Cover Image URL',
-                  hint: 'https://...',
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Cover image URL is required';
-                    }
-                    return null;
-                  },
-                ),
+                _buildImageField(),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -792,6 +783,62 @@ class _CollectionFormDialogState extends State<_CollectionFormDialog> {
               borderSide: const BorderSide(color: Colors.redAccent),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Cover Image URL',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        AdminImageUploadField(
+          controller: _imageUrlController,
+          storageFolder: 'collections',
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Cover image URL is required';
+            }
+            return null;
+          },
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'https://...',
+            hintStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.35),
+            ),
+            filled: true,
+            fillColor: const Color(0xFF181818),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.accentGold),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+          ),
+          buttonForegroundColor: AppColors.accentGold,
+          helperText:
+              'Paste a cover image URL or upload one from your device.',
         ),
       ],
     );
