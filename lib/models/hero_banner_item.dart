@@ -40,4 +40,32 @@ class HeroBannerItem {
       sortOrder: sortOrder ?? this.sortOrder,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'subtitle': subtitle,
+      'imageUrl': imageUrl,
+      'ctaText': ctaText,
+      'targetProductId': targetProductId,
+      'isActive': isActive,
+      'sortOrder': sortOrder,
+    };
+  }
+
+  factory HeroBannerItem.fromMap(Map<String, dynamic> map) {
+    return HeroBannerItem(
+      id: (map['id'] ?? '').toString(),
+      title: (map['title'] ?? '').toString(),
+      subtitle: (map['subtitle'] ?? '').toString(),
+      imageUrl: (map['imageUrl'] ?? '').toString(),
+      ctaText: (map['ctaText'] ?? '').toString(),
+      targetProductId: (map['targetProductId'] ?? '').toString(),
+      isActive: map['isActive'] is bool ? map['isActive'] as bool : true,
+      sortOrder: map['sortOrder'] is num
+          ? (map['sortOrder'] as num).toInt()
+          : int.tryParse((map['sortOrder'] ?? '').toString()) ?? 0,
+    );
+  }
 }

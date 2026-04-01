@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:flutter/foundation.dart';
 import '../models/delivery_zone.dart';
 import '../models/category_item.dart';
@@ -9,10 +13,130 @@ import 'mock_store_data.dart';
 
 class StoreController extends ChangeNotifier {
   static final StoreController _instance = StoreController._internal();
+  static const String _storeSettingsKey = 'dthc_store_settings';
+  static const String _heroBannersKey = 'dthc_hero_banners';
+  static const String _productsKey = 'dthc_products';
+  static const String _collectionsKey = 'dthc_collections';
+  static const String _lookbookEntriesKey = 'dthc_lookbook_entries';
+  static const String _deliveryZonesKey = 'dthc_delivery_zones';
 
   factory StoreController() => _instance;
 
-  StoreController._internal();
+  StoreController._internal() {
+    _loadPersistedData();
+  }
+
+  Future<void> _loadPersistedData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final storeSettingsJson = prefs.getString(_storeSettingsKey);
+    if (storeSettingsJson != null && storeSettingsJson.isNotEmpty) {
+      MockStoreData.storeSettings = StoreSettings.fromMap(
+        Map<String, dynamic>.from(jsonDecode(storeSettingsJson)),
+      );
+    }
+
+    final heroBannersJson = prefs.getString(_heroBannersKey);
+    if (heroBannersJson != null && heroBannersJson.isNotEmpty) {
+      final decoded = List<Map<String, dynamic>>.from(
+        (jsonDecode(heroBannersJson) as List).map(
+          (item) => Map<String, dynamic>.from(item),
+        ),
+      );
+      MockStoreData.heroBanners = decoded
+          .map((item) => HeroBannerItem.fromMap(item))
+          .toList();
+    }
+
+    final productsJson = prefs.getString(_productsKey);
+    if (productsJson != null && productsJson.isNotEmpty) {
+      final decoded = List<Map<String, dynamic>>.from(
+        (jsonDecode(productsJson) as List).map(
+          (item) => Map<String, dynamic>.from(item),
+        ),
+      );
+      MockStoreData.foodItems = decoded
+          .map((item) => ProductItem.fromMap(item))
+          .toList();
+    }
+
+    final collectionsJson = prefs.getString(_collectionsKey);
+    if (collectionsJson != null && collectionsJson.isNotEmpty) {
+      final decoded = List<Map<String, dynamic>>.from(
+        (jsonDecode(collectionsJson) as List).map(
+          (item) => Map<String, dynamic>.from(item),
+        ),
+      );
+      MockStoreData.collections = decoded
+          .map((item) => CollectionModel.fromMap(item))
+          .toList();
+    }
+
+    final lookbookEntriesJson = prefs.getString(_lookbookEntriesKey);
+    if (lookbookEntriesJson != null && lookbookEntriesJson.isNotEmpty) {
+      MockStoreData.lookbookEntries = List<Map<String, dynamic>>.from(
+        (jsonDecode(lookbookEntriesJson) as List).map(
+          (item) => Map<String, dynamic>.from(item),
+        ),
+      );
+    }
+
+    final deliveryZonesJson = prefs.getString(_deliveryZonesKey);
+    if (deliveryZonesJson != null && deliveryZonesJson.isNotEmpty) {
+      final decoded = List<Map<String, dynamic>>.from(
+        (jsonDecode(deliveryZonesJson) as List).map(
+          (item) => Map<String, dynamic>.from(item),
+        ),
+      );
+      MockStoreData.deliveryZones = decoded
+          .map(
+            (item) => DeliveryZone.fromMap(
+              (item['id'] ?? '').toString(),
+              item,
+            ),
+          )
+          .toList();
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> _persistData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _storeSettingsKey,
+      jsonEncode(MockStoreData.storeSettings.toMap()),
+    );
+    await prefs.setString(
+      _heroBannersKey,
+      jsonEncode(MockStoreData.heroBanners.map((item) => item.toMap()).toList()),
+    );
+    await prefs.setString(
+      _productsKey,
+      jsonEncode(MockStoreData.foodItems.map((item) => item.toMap()).toList()),
+    );
+    await prefs.setString(
+      _collectionsKey,
+      jsonEncode(MockStoreData.collections.map((item) => item.toMap()).toList()),
+    );
+    await prefs.setString(
+      _lookbookEntriesKey,
+      jsonEncode(MockStoreData.lookbookEntries),
+    );
+    await prefs.setString(
+      _deliveryZonesKey,
+      jsonEncode(
+        MockStoreData.deliveryZones
+            .map(
+              (zone) => {
+                'id': zone.id,
+                ...zone.toMap(),
+              },
+            )
+            .toList(),
+      ),
+    );
+  }
 
   StoreSettings getStoreSettings() {
     return MockStoreData.storeSettings;
@@ -20,6 +144,7 @@ class StoreController extends ChangeNotifier {
 
   void updateStoreSettings(StoreSettings settings) {
     MockStoreData.storeSettings = settings;
+    _persistData();
     notifyListeners();
   }
 
@@ -45,6 +170,7 @@ class StoreController extends ChangeNotifier {
 
   void addHeroBanner(HeroBannerItem item) {
     MockStoreData.heroBanners.add(item);
+    _persistData();
     notifyListeners();
   }
 
@@ -52,12 +178,14 @@ class StoreController extends ChangeNotifier {
     final index = MockStoreData.heroBanners.indexWhere((item) => item.id == id);
     if (index != -1) {
       MockStoreData.heroBanners[index] = updatedItem;
+      _persistData();
       notifyListeners();
     }
   }
 
   void deleteHeroBanner(String id) {
     MockStoreData.heroBanners.removeWhere((item) => item.id == id);
+    _persistData();
     notifyListeners();
   }
 
@@ -155,6 +283,7 @@ class StoreController extends ChangeNotifier {
       ...MockStoreData.collections,
       collection,
     ];
+    _persistData();
     notifyListeners();
   }
 
@@ -167,6 +296,7 @@ class StoreController extends ChangeNotifier {
       final updatedList = [...MockStoreData.collections];
       updatedList[index] = updatedCollection;
       MockStoreData.collections = updatedList;
+      _persistData();
       notifyListeners();
     }
   }
@@ -175,6 +305,7 @@ class StoreController extends ChangeNotifier {
     MockStoreData.collections = MockStoreData.collections
         .where((collection) => collection.id != id)
         .toList();
+    _persistData();
     notifyListeners();
   }
 
@@ -194,6 +325,7 @@ class StoreController extends ChangeNotifier {
         isFeatured: !current.isFeatured,
       );
       MockStoreData.collections = updatedList;
+      _persistData();
       notifyListeners();
     }
   }
@@ -235,6 +367,7 @@ class StoreController extends ChangeNotifier {
       ...MockStoreData.deliveryZones,
       zone,
     ];
+    _persistData();
     notifyListeners();
   }
 
@@ -247,6 +380,7 @@ class StoreController extends ChangeNotifier {
       final updatedList = [...MockStoreData.deliveryZones];
       updatedList[index] = updatedZone;
       MockStoreData.deliveryZones = updatedList;
+      _persistData();
       notifyListeners();
     }
   }
@@ -255,6 +389,7 @@ class StoreController extends ChangeNotifier {
     MockStoreData.deliveryZones = MockStoreData.deliveryZones
         .where((zone) => zone.id != id)
         .toList();
+    _persistData();
     notifyListeners();
   }
   List<ProductItem> getProductsByCategory(String categoryName) {
@@ -318,6 +453,7 @@ class StoreController extends ChangeNotifier {
         'targetValue': (entry['targetValue'] ?? '').toString(),
       },
     ];
+    _persistData();
     notifyListeners();
   }
 
@@ -343,6 +479,7 @@ class StoreController extends ChangeNotifier {
       };
 
       MockStoreData.lookbookEntries = updatedList;
+      _persistData();
       notifyListeners();
     }
   }
@@ -352,6 +489,7 @@ class StoreController extends ChangeNotifier {
         .where((entry) => (entry['id'] ?? '').toString() != id)
         .map((entry) => Map<String, dynamic>.from(entry))
         .toList();
+    _persistData();
     notifyListeners();
   }
 
@@ -376,17 +514,20 @@ class StoreController extends ChangeNotifier {
         MockStoreData.foodItems.indexWhere((product) => product.id == id);
     if (index != -1) {
       MockStoreData.foodItems[index] = updatedItem;
+      _persistData();
       notifyListeners();
     }
   }
 
   void addProductItem(ProductItem newProduct) {
     MockStoreData.foodItems.add(newProduct);
+    _persistData();
     notifyListeners();
   }
 
   void deleteProductItem(String id) {
     MockStoreData.foodItems.removeWhere((product) => product.id == id);
+    _persistData();
     notifyListeners();
   }
 

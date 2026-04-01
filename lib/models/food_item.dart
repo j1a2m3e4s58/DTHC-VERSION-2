@@ -191,6 +191,63 @@ class ProductItem {
       imageEntries: reorderedEntries,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'price': price,
+      'category': category,
+      'imageEntries': imageEntries.map((entry) => entry.toMap()).toList(),
+      'oldPrice': oldPrice,
+      'dealLabel': dealLabel,
+      'dealEndsAt': dealEndsAt,
+      'isAvailable': isAvailable,
+      'isFeatured': isFeatured,
+      'stockQuantity': stockQuantity,
+      'collection': collection,
+      'isNewArrival': isNewArrival,
+      'isBestSeller': isBestSeller,
+    };
+  }
+
+  factory ProductItem.fromMap(Map<String, dynamic> map) {
+    final rawEntries = map['imageEntries'];
+    final parsedEntries = rawEntries is List
+        ? rawEntries
+            .map((entry) => ProductImageEntry.fromMap(Map<dynamic, dynamic>.from(entry)))
+            .toList()
+        : <ProductImageEntry>[];
+
+    return ProductItem(
+      id: (map['id'] ?? '').toString(),
+      name: (map['name'] ?? '').toString(),
+      description: (map['description'] ?? '').toString(),
+      price: map['price'] is num
+          ? (map['price'] as num).toDouble()
+          : double.tryParse((map['price'] ?? '').toString()) ?? 0,
+      category: (map['category'] ?? '').toString(),
+      imageEntries: parsedEntries,
+      oldPrice: map['oldPrice'] == null
+          ? null
+          : (map['oldPrice'] is num
+              ? (map['oldPrice'] as num).toDouble()
+              : double.tryParse(map['oldPrice'].toString())),
+      dealLabel: (map['dealLabel'] ?? '').toString(),
+      dealEndsAt: (map['dealEndsAt'] ?? '').toString(),
+      isAvailable: map['isAvailable'] is bool ? map['isAvailable'] as bool : true,
+      isFeatured: map['isFeatured'] is bool ? map['isFeatured'] as bool : false,
+      stockQuantity: map['stockQuantity'] is num
+          ? (map['stockQuantity'] as num).toInt()
+          : int.tryParse((map['stockQuantity'] ?? '').toString()) ?? 0,
+      collection: (map['collection'] ?? 'General Collection').toString(),
+      isNewArrival:
+          map['isNewArrival'] is bool ? map['isNewArrival'] as bool : false,
+      isBestSeller:
+          map['isBestSeller'] is bool ? map['isBestSeller'] as bool : false,
+    );
+  }
 }
 
 typedef FoodItem = ProductItem;

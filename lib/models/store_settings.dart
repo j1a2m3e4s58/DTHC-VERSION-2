@@ -184,4 +184,103 @@ class StoreSettings {
       tiktok: tiktok ?? this.tiktok,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'storeName': storeName,
+      'tagline': tagline,
+      'phoneNumber': phoneNumber,
+      'email': email,
+      'address': address,
+      'logoUrl': logoUrl,
+      'heroTitle': heroTitle,
+      'heroSubtitle': heroSubtitle,
+      'announcementText': announcementText,
+      'themeMode': themeMode,
+      'homeSearchTitle': homeSearchTitle,
+      'homeSearchSubtitle': homeSearchSubtitle,
+      'marketplaceBannerLabel': marketplaceBannerLabel,
+      'marketplaceBannerTitle': marketplaceBannerTitle,
+      'marketplaceBannerSubtitle': marketplaceBannerSubtitle,
+      'marketplacePrimaryCta': marketplacePrimaryCta,
+      'marketplaceSecondaryCta': marketplaceSecondaryCta,
+      'promoSneakersTitle': promoSneakersTitle,
+      'promoSneakersSubtitle': promoSneakersSubtitle,
+      'promoSneakersCta': promoSneakersCta,
+      'promoTeesTitle': promoTeesTitle,
+      'promoTeesSubtitle': promoTeesSubtitle,
+      'promoTeesCta': promoTeesCta,
+      'promoBestSellersTitle': promoBestSellersTitle,
+      'promoBestSellersSubtitle': promoBestSellersSubtitle,
+      'promoBestSellersCta': promoBestSellersCta,
+      'dealsStripLabel': dealsStripLabel,
+      'dealsStripTitle': dealsStripTitle,
+      'dealsStripSubtitle': dealsStripSubtitle,
+      'dealsPrimaryCta': dealsPrimaryCta,
+      'dealsSecondaryCta': dealsSecondaryCta,
+      'dealsCountdownEndsAt': dealsCountdownEndsAt,
+      'shopHeaderBadge': shopHeaderBadge,
+      'shopSearchTitle': shopSearchTitle,
+      'shopSearchSubtitle': shopSearchSubtitle,
+      'deliveryFee': deliveryFee,
+      'freeDeliveryThreshold': freeDeliveryThreshold,
+      'instagram': instagram,
+      'twitter': twitter,
+      'tiktok': tiktok,
+    };
+  }
+
+  factory StoreSettings.fromMap(Map<String, dynamic> map) {
+    double parseDouble(dynamic value, double fallback) {
+      if (value is num) return value.toDouble();
+      return double.tryParse((value ?? '').toString()) ?? fallback;
+    }
+
+    return StoreSettings(
+      storeName: (map['storeName'] ?? '').toString(),
+      tagline: (map['tagline'] ?? '').toString(),
+      phoneNumber: (map['phoneNumber'] ?? '').toString(),
+      email: (map['email'] ?? '').toString(),
+      address: (map['address'] ?? '').toString(),
+      logoUrl: (map['logoUrl'] ?? '').toString(),
+      heroTitle: (map['heroTitle'] ?? '').toString(),
+      heroSubtitle: (map['heroSubtitle'] ?? '').toString(),
+      announcementText: (map['announcementText'] ?? '').toString(),
+      themeMode: (map['themeMode'] ?? 'light').toString(),
+      homeSearchTitle: (map['homeSearchTitle'] ?? '').toString(),
+      homeSearchSubtitle: (map['homeSearchSubtitle'] ?? '').toString(),
+      marketplaceBannerLabel: (map['marketplaceBannerLabel'] ?? '').toString(),
+      marketplaceBannerTitle: (map['marketplaceBannerTitle'] ?? '').toString(),
+      marketplaceBannerSubtitle:
+          (map['marketplaceBannerSubtitle'] ?? '').toString(),
+      marketplacePrimaryCta: (map['marketplacePrimaryCta'] ?? '').toString(),
+      marketplaceSecondaryCta:
+          (map['marketplaceSecondaryCta'] ?? '').toString(),
+      promoSneakersTitle: (map['promoSneakersTitle'] ?? '').toString(),
+      promoSneakersSubtitle: (map['promoSneakersSubtitle'] ?? '').toString(),
+      promoSneakersCta: (map['promoSneakersCta'] ?? '').toString(),
+      promoTeesTitle: (map['promoTeesTitle'] ?? '').toString(),
+      promoTeesSubtitle: (map['promoTeesSubtitle'] ?? '').toString(),
+      promoTeesCta: (map['promoTeesCta'] ?? '').toString(),
+      promoBestSellersTitle:
+          (map['promoBestSellersTitle'] ?? '').toString(),
+      promoBestSellersSubtitle:
+          (map['promoBestSellersSubtitle'] ?? '').toString(),
+      promoBestSellersCta: (map['promoBestSellersCta'] ?? '').toString(),
+      dealsStripLabel: (map['dealsStripLabel'] ?? '').toString(),
+      dealsStripTitle: (map['dealsStripTitle'] ?? '').toString(),
+      dealsStripSubtitle: (map['dealsStripSubtitle'] ?? '').toString(),
+      dealsPrimaryCta: (map['dealsPrimaryCta'] ?? '').toString(),
+      dealsSecondaryCta: (map['dealsSecondaryCta'] ?? '').toString(),
+      dealsCountdownEndsAt: (map['dealsCountdownEndsAt'] ?? '').toString(),
+      shopHeaderBadge: (map['shopHeaderBadge'] ?? '').toString(),
+      shopSearchTitle: (map['shopSearchTitle'] ?? '').toString(),
+      shopSearchSubtitle: (map['shopSearchSubtitle'] ?? '').toString(),
+      deliveryFee: parseDouble(map['deliveryFee'], 0),
+      freeDeliveryThreshold: parseDouble(map['freeDeliveryThreshold'], 0),
+      instagram: (map['instagram'] ?? '').toString(),
+      twitter: (map['twitter'] ?? '').toString(),
+      tiktok: (map['tiktok'] ?? '').toString(),
+    );
+  }
 }
