@@ -87,6 +87,9 @@ class CustomNavbar extends StatelessWidget {
                           onLongPress: onAdminTap,
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      const _ThemeToggleButton(isMobile: true),
+                      const SizedBox(width: 8),
                       _MobileMenuButton(
                         cartTitle: cartTitle,
                         activeItem: activeItem,
@@ -183,11 +186,109 @@ class _DesktopNavbarLayout extends StatelessWidget {
           ),
         ),
         SizedBox(width: isTablet ? 12 : 18),
-        _NavbarActions(
-          isTablet: isTablet,
-          onOrderNowTap: onOrderNowTap,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ThemeToggleButton(isMobile: false, compact: isTablet),
+            SizedBox(width: isTablet ? 10 : 12),
+            _NavbarActions(
+              isTablet: isTablet,
+              onOrderNowTap: onOrderNowTap,
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _ThemeToggleButton extends StatelessWidget {
+  final bool isMobile;
+  final bool compact;
+
+  const _ThemeToggleButton({
+    required this.isMobile,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final themeController = context.watch<ThemeController>();
+    final palette = AppColors.palette(themeController.isDarkMode);
+    final isDarkMode = themeController.isDarkMode;
+
+    if (isMobile) {
+      return Tooltip(
+        message: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(15),
+            onTap: () {
+              themeController.toggle();
+            },
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: palette.surfaceStrong,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: palette.border),
+              ),
+              child: Icon(
+                isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                color: isDarkMode ? AppColors.gold : palette.textOnStrong,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            themeController.toggle();
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 12 : 14,
+              vertical: compact ? 12 : 14,
+            ),
+            decoration: BoxDecoration(
+              color: palette.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: palette.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isDarkMode
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  size: compact ? 18 : 19,
+                  color: isDarkMode ? AppColors.gold : palette.textPrimary,
+                ),
+                SizedBox(width: compact ? 8 : 9),
+                Text(
+                  isDarkMode ? 'Light' : 'Dark',
+                  style: TextStyle(
+                    fontSize: compact ? 13 : 14,
+                    fontWeight: FontWeight.w800,
+                    color: palette.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
