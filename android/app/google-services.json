@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1075043554354",
+    "firebase_url": "https://drip-too-hard-collection-default-rtdb.firebaseio.com",
+    "project_id": "drip-too-hard-collection",
+    "storage_bucket": "drip-too-hard-collection.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075043554354:android:b136215de53b92d970582b",
+        "android_client_info": {
+          "package_name": "com.example.superfoods_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzE6Mv46Iwu9Yjj9sB2Srexe2_DKuGDYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075043554354:android:6db918230f88f55e70582b",
+        "android_client_info": {
+          "package_name": "drip_too.hard_collections"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzE6Mv46Iwu9Yjj9sB2Srexe2_DKuGDYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

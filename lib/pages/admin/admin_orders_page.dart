@@ -1,0 +1,1764 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../core/app_colors.dart';
+import '../../data/order_controller.dart';
+import '../../models/customer_order.dart';
+import '../../models/order_item.dart';
+
+class AdminOrdersPage extends StatefulWidget {
+  const AdminOrdersPage({super.key});
+
+  @override
+  State<AdminOrdersPage> createState() => _AdminOrdersPageState();
+}
+
+class _AdminOrdersPageState extends State<AdminOrdersPage> {
+  String selectedFilter = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<OrderController>().markAllOrdersAsSeen();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderController = context.watch<OrderController>();
+    final allOrders = orderController.orders;
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 700;
+
+    final deliveredCount =
+        allOrders.where((order) => order.isDelivered).length;
+    final pendingCount =
+        allOrders.where((order) => !order.isDelivered).length;
+    final paidCount =
+        allOrders.where((order) => order.paymentStatus == 'Paid').length;
+    final unpaidCount =
+        allOrders.where((order) => order.paymentStatus != 'Paid').length;
+
+    final filteredOrders = switch (selectedFilter) {
+      'Pending' => allOrders.where((order) => !order.isDelivered).toList(),
+      'Delivered' => allOrders.where((order) => order.isDelivered).toList(),
+      'Paid' => allOrders.where((order) => order.paymentStatus == 'Paid').toList(),
+      'Unpaid' => allOrders.where((order) => order.paymentStatus != 'Paid').toList(),
+      _ => allOrders,
+    };
+
+    return Scaffold(
+      backgroundColor: AppColors.primaryBlack,
+      appBar: AppBar(
+        backgroundColor: AppColors.softBlack,
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        title: const Text(
+          'Admin Orders',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+      body: allOrders.isEmpty
+          ? Center(
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.softBlack,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.charcoal),
+                ),
+                child: const Text(
+                  'No customer orders yet.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFBDBDBD),
+                  ),
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 24,
+                vertical: isMobile ? 16 : 24,
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1280),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _OrdersTopSummary(
+                        totalCount: allOrders.length,
+                        pendingCount: pendingCount,
+                        deliveredCount: deliveredCount,
+                        paidCount: paidCount,
+                        unpaidCount: unpaidCount,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFilterTabs(
+                        totalCount: allOrders.length,
+                        pendingCount: pendingCount,
+                        deliveredCount: deliveredCount,
+                        paidCount: paidCount,
+                        unpaidCount: unpaidCount,
+                      ),
+                      const SizedBox(height: 20),
+                      if (filteredOrders.isEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppColors.softBlack,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: AppColors.charcoal),
+                          ),
+                          child: Text(
+                            'No $selectedFilter orders found.',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFBDBDBD),
+                            ),
+                          ),
+                        )
+                      else
+                        ...filteredOrders.map(
+                          (order) => _PremiumOrderCard(order: order),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildFilterTabs({
+    required int totalCount,
+    required int pendingCount,
+    required int deliveredCount,
+    required int paidCount,
+    required int unpaidCount,
+  }) {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        _FilterChipButton(
+          label: 'All',
+          count: totalCount,
+          selected: selectedFilter == 'All',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'All';
+            });
+          },
+        ),
+        _FilterChipButton(
+          label: 'Pending',
+          count: pendingCount,
+          selected: selectedFilter == 'Pending',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Pending';
+            });
+          },
+        ),
+        _FilterChipButton(
+          label: 'Delivered',
+          count: deliveredCount,
+          selected: selectedFilter == 'Delivered',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Delivered';
+            });
+          },
+        ),
+        _FilterChipButton(
+          label: 'Paid',
+          count: paidCount,
+          selected: selectedFilter == 'Paid',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Paid';
+            });
+          },
+        ),
+        _FilterChipButton(
+          label: 'Unpaid',
+          count: unpaidCount,
+          selected: selectedFilter == 'Unpaid',
+          onTap: () {
+            setState(() {
+              selectedFilter = 'Unpaid';
+            });
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _OrdersTopSummary extends StatelessWidget {
+  final int totalCount;
+  final int pendingCount;
+  final int deliveredCount;
+  final int paidCount;
+  final int unpaidCount;
+
+  const _OrdersTopSummary({
+    required this.totalCount,
+    required this.pendingCount,
+    required this.deliveredCount,
+    required this.paidCount,
+    required this.unpaidCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    final cards = [
+      _TopMetricCard(
+        title: 'Total Orders',
+        value: '$totalCount',
+        icon: Icons.receipt_long,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Pending',
+        value: '$pendingCount',
+        icon: Icons.access_time,
+        iconColor: AppColors.white,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Delivered',
+        value: '$deliveredCount',
+        icon: Icons.check_circle,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Paid',
+        value: '$paidCount',
+        icon: Icons.payments_rounded,
+        iconColor: AppColors.gold,
+        iconBackground: AppColors.charcoal,
+      ),
+      _TopMetricCard(
+        title: 'Unpaid',
+        value: '$unpaidCount',
+        icon: Icons.pending_actions_rounded,
+        iconColor: AppColors.white,
+        iconBackground: AppColors.charcoal,
+      ),
+    ];
+
+    if (isMobile) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: cards[0]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[1]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: cards[2]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[3]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: cards[4]),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: cards[0]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[1]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[2]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[3]),
+        const SizedBox(width: 14),
+        Expanded(child: cards[4]),
+      ],
+    );
+  }
+}
+
+class _TopMetricCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBackground;
+
+  const _TopMetricCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 12 : 18),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.charcoal),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 18),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFBDBDBD),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: iconColor),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.white,
+                        ),
+                      ),
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFBDBDBD),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChipButton({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = selected ? AppColors.gold : AppColors.softBlack;
+    final textColor = selected ? AppColors.primaryBlack : AppColors.white;
+    final borderColor = selected ? AppColors.gold : AppColors.charcoal;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.white.withValues(alpha: 0.20)
+                    : AppColors.charcoal,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumOrderCard extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _PremiumOrderCard({
+    required this.order,
+  });
+
+  String _formatOrderTime(DateTime time) {
+    final day = time.day.toString().padLeft(2, '0');
+    final month = time.month.toString().padLeft(2, '0');
+    final year = time.year.toString();
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year  $hour:$minute';
+  }
+
+  Future<void> _confirmDeleteOrder(
+    BuildContext context,
+    OrderController orderController,
+  ) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.softBlack,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Delete order?',
+            style: TextStyle(color: AppColors.white),
+          ),
+          content: const Text(
+            'This will permanently remove this delivered order from Firebase.',
+            style: TextStyle(color: Color(0xFFBDBDBD)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.gold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await orderController.deleteOrder(order.id);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Delivered order deleted successfully.'),
+          ),
+        );
+      }
+    }
+  }
+
+  Color _paymentStatusColor() {
+    switch (order.paymentStatus) {
+      case 'Paid':
+        return AppColors.gold;
+      case 'Part Paid':
+        return const Color(0xFFE5C15A);
+      case 'Failed':
+        return const Color(0xFFD66B6B);
+      default:
+        return AppColors.charcoal;
+    }
+  }
+
+  Color _paymentProofColor() {
+    switch (order.paymentProofStatus) {
+      case 'Received':
+      case 'Pending Review':
+        return const Color(0xFFE5C15A);
+      case 'Reviewed':
+        return AppColors.gold;
+      default:
+        return AppColors.charcoal;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderController = context.read<OrderController>();
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 800;
+
+    final Color statusBorder =
+        order.isDelivered ? AppColors.gold : AppColors.charcoal;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: EdgeInsets.all(isMobile ? 18 : 22),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: statusBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _OrderHeader(
+                      order: order,
+                      formattedTime: _formatOrderTime(order.createdAt),
+                    ),
+                    const SizedBox(height: 14),
+                    _OrderActions(
+                      order: order,
+                      isDelivered: order.isDelivered,
+                      onToggleDelivered: () async {
+                        await orderController.toggleDelivered(order.id);
+                      },
+                      onDeleteOrder: order.isDelivered
+                          ? () async {
+                              await _confirmDeleteOrder(
+                                context,
+                                orderController,
+                              );
+                            }
+                          : null,
+                    ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _OrderHeader(
+                        order: order,
+                        formattedTime: _formatOrderTime(order.createdAt),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    SizedBox(
+                      width: 210,
+                      child: _OrderActions(
+                        order: order,
+                        isDelivered: order.isDelivered,
+                        onToggleDelivered: () async {
+                          await orderController.toggleDelivered(order.id);
+                        },
+                        onDeleteOrder: order.isDelivered
+                            ? () async {
+                                await _confirmDeleteOrder(
+                                  context,
+                                  orderController,
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+          const SizedBox(height: 18),
+          _InfoSection(
+            title: 'Customer Details',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoLine(
+                  icon: Icons.person_outline,
+                  text: order.customerName,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.phone_outlined,
+                  text: order.phoneNumber,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.location_on_outlined,
+                  text: order.address,
+                ),
+                if (order.note.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _InfoLine(
+                    icon: Icons.sticky_note_2_outlined,
+                    text: order.note,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _InfoSection(
+            title: 'Order Meta',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoLine(
+                  icon: Icons.payments_outlined,
+                  text: order.paymentMethod,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.map_outlined,
+                  text: order.deliveryZoneName.isEmpty
+                      ? 'No delivery zone saved'
+                      : order.deliveryZoneName,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.local_shipping_outlined,
+                  text: order.trackingCode.isEmpty
+                      ? 'Tracking code not assigned'
+                      : order.trackingCode,
+                ),
+                const SizedBox(height: 10),
+                _InfoLine(
+                  icon: Icons.receipt_long_outlined,
+                  text: 'Order ID: ${order.id}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _InfoSection(
+            title: 'Payment Status',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _StatusBadge(
+                      label: 'Payment: ${order.paymentStatus}',
+                      color: _paymentStatusColor(),
+                      textColor: order.paymentStatus == 'Pending'
+                          ? AppColors.white
+                          : AppColors.primaryBlack,
+                    ),
+                    _StatusBadge(
+                      label: 'Proof: ${order.paymentProofStatus}',
+                      color: _paymentProofColor(),
+                      textColor: order.paymentProofStatus == 'Not Sent'
+                          ? AppColors.white
+                          : AppColors.primaryBlack,
+                    ),
+                    _StatusBadge(
+                      label: order.paymentUpdateSent
+                          ? 'Update Sent'
+                          : 'Update Not Sent',
+                      color: order.paymentUpdateSent
+                          ? AppColors.gold
+                          : AppColors.charcoal,
+                      textColor: order.paymentUpdateSent
+                          ? AppColors.primaryBlack
+                          : AppColors.white,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (order.paymentProofUrl.isNotEmpty) ...[
+                  _PaymentProofPreview(order: order),
+                  const SizedBox(height: 14),
+                ],
+                _PaymentActionGrid(order: order),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _InfoSection(
+            title: 'Ordered Items',
+            child: Column(
+              children: List.generate(order.items.length, (index) {
+                final item = order.items[index];
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == order.items.length - 1 ? 0 : 12,
+                  ),
+                  child: _OrderedItemCard(item: item),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlack,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.charcoal),
+            ),
+            child: Column(
+              children: [
+                _AmountRow('Subtotal', order.subtotal),
+                const SizedBox(height: 10),
+                _AmountRow('Delivery', order.deliveryFee),
+                const SizedBox(height: 10),
+                _TextRow('Payment Method', order.paymentMethod),
+                const SizedBox(height: 10),
+                _TextRow(
+                  'Payment Status',
+                  order.paymentStatus,
+                  highlightGold: order.paymentStatus == 'Paid',
+                ),
+                const SizedBox(height: 10),
+                _TextRow(
+                  'Payment Proof',
+                  order.paymentProofStatus,
+                  highlightGold: order.paymentProofStatus == 'Received' ||
+                      order.paymentProofStatus == 'Reviewed' ||
+                      order.paymentProofStatus == 'Pending Review',
+                ),
+                const SizedBox(height: 10),
+                _TextRow(
+                  'Tracking Code',
+                  order.trackingCode.isEmpty ? 'Not assigned' : order.trackingCode,
+                  highlightGold: order.trackingCode.isNotEmpty,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(color: AppColors.charcoal),
+                ),
+                _AmountRow(
+                  'Total',
+                  order.total,
+                  isTotal: true,
+                  highlightGold: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentProofPreview extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _PaymentProofPreview({
+    required this.order,
+  });
+
+  Future<void> _openImage() async {
+    final uri = Uri.parse(order.paymentProofUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.gold),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Payment Proof Image',
+            style: TextStyle(
+              color: AppColors.gold,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: double.infinity,
+              height: isMobile ? 220 : 280,
+              color: AppColors.charcoal,
+              child: Image.network(
+                order.paymentProofUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      color: AppColors.gold,
+                      size: 40,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _openImage,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.gold,
+                  side: const BorderSide(color: AppColors.gold),
+                ),
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: const Text(
+                  'Open Full Image',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentActionGrid extends StatelessWidget {
+  final CustomerOrder order;
+
+  const _PaymentActionGrid({
+    required this.order,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final orderController = context.read<OrderController>();
+    final isMobile = MediaQuery.of(context).size.width < 700;
+
+    final actions = [
+      _MiniActionButton(
+        label: 'Mark Paid',
+        icon: Icons.check_circle_outline,
+        isPrimary: order.paymentStatus == 'Paid',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Paid');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Mark Pending',
+        icon: Icons.pending_outlined,
+        isPrimary: order.paymentStatus == 'Pending',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Pending');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Part Paid',
+        icon: Icons.toll_rounded,
+        isPrimary: order.paymentStatus == 'Part Paid',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Part Paid');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Failed',
+        icon: Icons.error_outline,
+        isPrimary: order.paymentStatus == 'Failed',
+        onTap: () async {
+          await orderController.updatePaymentStatus(order.id, 'Failed');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Received',
+        icon: Icons.file_present_outlined,
+        isPrimary: order.paymentProofStatus == 'Received',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(order.id, 'Received');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Pending Review',
+        icon: Icons.hourglass_top_rounded,
+        isPrimary: order.paymentProofStatus == 'Pending Review',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(
+            order.id,
+            'Pending Review',
+          );
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Reviewed',
+        icon: Icons.fact_check_outlined,
+        isPrimary: order.paymentProofStatus == 'Reviewed',
+        onTap: () async {
+          await orderController.updatePaymentProofStatus(order.id, 'Reviewed');
+        },
+      ),
+      _MiniActionButton(
+        label: 'Proof Not Sent',
+        icon: Icons.hide_source_outlined,
+        isPrimary: order.paymentProofStatus == 'Not Sent',
+        onTap: () async {
+          await orderController.clearPaymentProof(order.id);
+        },
+      ),
+      _MiniActionButton(
+        label: order.paymentUpdateSent ? 'Update Sent' : 'Mark Update Sent',
+        icon: Icons.chat_bubble_outline,
+        isPrimary: order.paymentUpdateSent,
+        onTap: () async {
+          await orderController.markPaymentUpdateSent(order.id, true);
+        },
+      ),
+    ];
+
+    if (isMobile) {
+      return Column(
+        children: List.generate(actions.length, (index) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: index == actions.length - 1 ? 0 : 10),
+            child: actions[index],
+          );
+        }),
+      );
+    }
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: actions
+          .map(
+            (action) => SizedBox(
+              width: 170,
+              child: action,
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _MiniActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isPrimary;
+  final Future<void> Function() onTap;
+
+  const _MiniActionButton({
+    required this.label,
+    required this.icon,
+    required this.isPrimary,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        await onTap();
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isPrimary ? AppColors.gold : AppColors.softBlack,
+        foregroundColor:
+            isPrimary ? AppColors.primaryBlack : AppColors.white,
+        elevation: 0,
+        side: BorderSide(
+          color: isPrimary ? AppColors.gold : AppColors.charcoal,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+
+  const _StatusBadge({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+          fontSize: 12.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderedItemCard extends StatelessWidget {
+  final OrderItem item;
+
+  const _OrderedItemCard({
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isMobile = width < 700;
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderedItemImage(item: item, isMobile: true),
+                const SizedBox(height: 12),
+                _OrderedItemDetails(item: item, isMobile: true),
+                const SizedBox(height: 12),
+                _OrderedItemFooter(item: item, isMobile: true),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderedItemImage(item: item, isMobile: false),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _OrderedItemDetails(item: item, isMobile: false),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: 170,
+                  child: _OrderedItemFooter(item: item, isMobile: false),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _OrderedItemImage extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemImage({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = isMobile ? double.infinity : 150;
+    final double height = isMobile ? 200 : 150;
+    final imageUrl = item.imageUrl.trim();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: const BoxDecoration(
+          gradient: AppColors.heroGradient,
+        ),
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _OrderedItemFallback(isMobile: isMobile);
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return _OrderedItemLoader(isMobile: isMobile);
+                },
+              )
+            : _OrderedItemFallback(isMobile: isMobile),
+      ),
+    );
+  }
+}
+
+class _OrderedItemLoader extends StatelessWidget {
+  final bool isMobile;
+
+  const _OrderedItemLoader({
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: isMobile ? 28 : 30,
+        height: isMobile ? 28 : 30,
+        child: const CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: AppColors.gold,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderedItemFallback extends StatelessWidget {
+  final bool isMobile;
+
+  const _OrderedItemFallback({
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(
+        Icons.shopping_bag_outlined,
+        size: isMobile ? 42 : 46,
+        color: AppColors.gold,
+      ),
+    );
+  }
+}
+
+class _OrderedItemDetails extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemDetails({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _OrderedItemBadge(
+              label: 'Qty ${item.quantity}',
+              isGold: true,
+            ),
+            _OrderedItemBadge(
+              label: 'Ordered',
+              isGold: false,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          item.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: isMobile ? 17 : 19,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Unit Price: GHS ${item.price.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: isMobile ? 13 : 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.gold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.softBlack,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.charcoal),
+          ),
+          child: Text(
+            'This item was included in the customer order and is shown here for admin review.',
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
+              height: 1.5,
+              color: const Color(0xFFBDBDBD),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderedItemFooter extends StatelessWidget {
+  final OrderItem item;
+  final bool isMobile;
+
+  const _OrderedItemFooter({
+    required this.item,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isMobile ? 12 : 14),
+      decoration: BoxDecoration(
+        color: AppColors.softBlack,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            isMobile ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        children: [
+          Text(
+            'Item Total',
+            style: TextStyle(
+              fontSize: isMobile ? 11.5 : 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.greyText,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'GHS ${item.totalPrice.toStringAsFixed(2)}',
+            textAlign: isMobile ? TextAlign.left : TextAlign.right,
+            style: TextStyle(
+              fontSize: isMobile ? 18 : 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.gold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderedItemBadge extends StatelessWidget {
+  final String label;
+  final bool isGold;
+
+  const _OrderedItemBadge({
+    required this.label,
+    required this.isGold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isGold
+            ? AppColors.gold.withValues(alpha: 0.12)
+            : AppColors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: isGold
+              ? AppColors.gold.withValues(alpha: 0.20)
+              : AppColors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: isGold ? AppColors.gold : AppColors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderHeader extends StatelessWidget {
+  final CustomerOrder order;
+  final String formattedTime;
+
+  const _OrderHeader({
+    required this.order,
+    required this.formattedTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final statusText = order.isDelivered ? 'DELIVERED' : 'PENDING';
+    final statusBg = order.isDelivered ? AppColors.gold : AppColors.charcoal;
+    final statusTextColor =
+        order.isDelivered ? AppColors.primaryBlack : AppColors.white;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 56,
+          width: 56,
+          decoration: BoxDecoration(
+            color: statusBg,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            order.isDelivered ? Icons.check_circle : Icons.receipt_long,
+            color: statusTextColor,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                order.customerName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Order time: $formattedTime',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFFBDBDBD),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  statusText,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: statusTextColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (order.isNew) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'NEW',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderActions extends StatelessWidget {
+  final CustomerOrder order;
+  final bool isDelivered;
+  final Future<void> Function() onToggleDelivered;
+  final Future<void> Function()? onDeleteOrder;
+
+  const _OrderActions({
+    required this.order,
+    required this.isDelivered,
+    required this.onToggleDelivered,
+    this.onDeleteOrder,
+  });
+
+  Future<void> _openWhatsAppAlert() async {
+    final message = Uri.encodeComponent(order.generateWhatsAppMessage());
+    final url = Uri.parse('https://wa.me/?text=$message');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: () async {
+            await _openWhatsAppAlert();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF25D366),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: const Icon(Icons.chat),
+          label: const Text(
+            'Send WhatsApp Alert',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          onPressed: () async {
+            await onToggleDelivered();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                isDelivered ? AppColors.charcoal : AppColors.gold,
+            foregroundColor:
+                isDelivered ? AppColors.white : AppColors.primaryBlack,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: Icon(
+            isDelivered ? Icons.undo : Icons.check_circle_outline,
+          ),
+          label: Text(
+            isDelivered ? 'Mark Pending' : 'Mark Delivered',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        if (onDeleteOrder != null) ...[
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () async {
+              await onDeleteOrder!();
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.white,
+              side: const BorderSide(color: AppColors.charcoal),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            icon: const Icon(Icons.delete_outline),
+            label: const Text(
+              'Delete Order',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _InfoSection extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _InfoSection({
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlack,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.charcoal),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.gold,
+            ),
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoLine({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.gold),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: AppColors.white,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmountRow extends StatelessWidget {
+  final String label;
+  final double value;
+  final bool isTotal;
+  final bool highlightGold;
+
+  const _AmountRow(
+    this.label,
+    this.value, {
+    this.isTotal = false,
+    this.highlightGold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final amountColor = isTotal
+        ? (highlightGold ? AppColors.gold : AppColors.white)
+        : AppColors.white;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 17 : 14,
+              fontWeight: isTotal ? FontWeight.w900 : FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          'GHS ${value.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: isTotal ? 18 : 14,
+            fontWeight: isTotal ? FontWeight.w900 : FontWeight.w700,
+            color: amountColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TextRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool highlightGold;
+
+  const _TextRow(
+    this.label,
+    this.value, {
+    this.highlightGold = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: highlightGold ? AppColors.gold : AppColors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Drip Too Hard Collections",
+  "short_name": "DTHC",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F9F5EC",
+  "theme_color": "#166534",
+  "description": "Shop premium shirts, shoes, and fashion essentials from DTHC. Shop premium shirts, shoes, and fashion essentials from DTHC. Discover stylish collections, quality streetwear, and the latest drops available online",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
