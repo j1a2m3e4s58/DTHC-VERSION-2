@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../models/food_pack.dart';
 import '../../widgets/admin_image_upload_field.dart';
+import '../../widgets/store_image.dart';
 
 class AdminCollectionsPage extends StatefulWidget {
   const AdminCollectionsPage({super.key});
@@ -273,20 +274,17 @@ class _AdminCollectionsPageState extends State<AdminCollectionsPage> {
                                     child: Stack(
                                       fit: StackFit.expand,
                                       children: [
-                                        Image.network(
-                                          collection.imageUrl,
+                                        StoreImage(
+                                          imageUrl: collection.imageUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return Container(
-                                              color: const Color(0xFF1A1A1A),
-                                              child: const Icon(
-                                                Icons.image_not_supported_outlined,
-                                                color: Colors.white38,
-                                                size: 44,
-                                              ),
-                                            );
-                                          },
+                                          errorWidget: Container(
+                                            color: const Color(0xFF1A1A1A),
+                                            child: const Icon(
+                                              Icons.image_not_supported_outlined,
+                                              color: Colors.white38,
+                                              size: 44,
+                                            ),
+                                          ),
                                         ),
                                         Container(
                                           decoration: BoxDecoration(

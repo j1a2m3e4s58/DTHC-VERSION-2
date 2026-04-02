@@ -11,6 +11,7 @@ import '../data/theme_controller.dart';
 import '../models/customer_order.dart';
 import '../models/delivery_zone.dart';
 import '../models/order_item.dart';
+import '../widgets/store_image.dart';
 import 'payment_delivery_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'order_success_page.dart';
@@ -1126,15 +1127,13 @@ Navigator.pushReplacement(
                       width: 58,
                       color: palette.surfaceAlt,
                       child: item.product.imageUrl.trim().isNotEmpty
-                          ? Image.network(
-                              item.product.imageUrl,
+                          ? StoreImage(
+                              imageUrl: item.product.imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.shopping_bag_outlined,
-                                  color: AppColors.gold,
-                                );
-                              },
+                              errorWidget: const Icon(
+                                Icons.shopping_bag_outlined,
+                                color: AppColors.gold,
+                              ),
                             )
                           : const Icon(
                               Icons.shopping_bag_outlined,

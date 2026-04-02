@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../data/theme_controller.dart';
 import '../models/food_item.dart';
+import 'store_image.dart';
 
 class FoodCard extends StatefulWidget {
   final ProductItem food;
@@ -438,27 +439,16 @@ class _FoodImageSectionState extends State<_FoodImageSection> {
                                 ? (widget.isMobile ? 10 : 14)
                                 : 0,
                           ),
-                          child: Image.network(
-                            _entries[index].imageUrl,
+                          child: StoreImage(
+                            imageUrl: _entries[index].imageUrl,
                             fit: widget.preferExpandedImage
                                 ? BoxFit.contain
                                 : BoxFit.cover,
                             width: double.infinity,
-                            filterQuality: FilterQuality.high,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _ImageFallback(
-                                isMobile: widget.isMobile,
-                                category: widget.food.category,
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return _ImageFallback(
-                                isMobile: widget.isMobile,
-                                category: widget.food.category,
-                                showLoader: true,
-                              );
-                            },
+                            errorWidget: _ImageFallback(
+                              isMobile: widget.isMobile,
+                              category: widget.food.category,
+                            ),
                           ),
                         );
                       },
@@ -922,23 +912,13 @@ class _GalleryImageArea extends StatelessWidget {
                 return InteractiveViewer(
                   minScale: 1,
                   maxScale: 4,
-                  child: Image.network(
-                    entries[index].imageUrl,
+                  child: StoreImage(
+                    imageUrl: entries[index].imageUrl,
                     fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return _ImageFallback(
-                        isMobile: isMobile,
-                        category: category,
-                        showLoader: true,
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return _ImageFallback(
-                        isMobile: isMobile,
-                        category: category,
-                      );
-                    },
+                    errorWidget: _ImageFallback(
+                      isMobile: isMobile,
+                      category: category,
+                    ),
                   ),
                 );
               },

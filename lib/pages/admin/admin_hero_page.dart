@@ -4,6 +4,7 @@ import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../models/hero_banner_item.dart';
 import '../../widgets/admin_image_upload_field.dart';
+import '../../widgets/store_image.dart';
 
 class AdminHeroPage extends StatefulWidget {
   const AdminHeroPage({super.key});
@@ -358,24 +359,22 @@ class _HeroAdminCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: item.imageUrl.trim().isNotEmpty
-                  ? Image.network(
-                      item.imageUrl,
+                  ? StoreImage(
+                      imageUrl: item.imageUrl,
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 100,
-                          height: 100,
-                          color: AppColors.charcoal,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.image_outlined,
-                            size: 32,
-                            color: AppColors.gold,
-                          ),
-                        );
-                      },
+                      errorWidget: Container(
+                        width: 100,
+                        height: 100,
+                        color: AppColors.charcoal,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.image_outlined,
+                          size: 32,
+                          color: AppColors.gold,
+                        ),
+                      ),
                     )
                   : Container(
                       width: 100,

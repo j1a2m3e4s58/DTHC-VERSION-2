@@ -7,6 +7,7 @@ import '../data/theme_controller.dart';
 import '../models/food_item.dart';
 import '../models/food_pack.dart';
 import '../widgets/custom_navbar.dart';
+import '../widgets/store_image.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'home_page.dart';
@@ -1296,18 +1297,16 @@ class _CollectionDetailImage extends StatelessWidget {
                   color: AppColors.white,
                 ),
               )
-            : Image.network(
-                imageUrl,
+            : StoreImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(
-                      Icons.layers_outlined,
-                      size: 64,
-                      color: AppColors.white,
-                    ),
-                  );
-                },
+                errorWidget: const Center(
+                  child: Icon(
+                    Icons.layers_outlined,
+                    size: 64,
+                    color: AppColors.white,
+                  ),
+                ),
               ),
       ),
     );
@@ -1360,18 +1359,16 @@ class _CollectionDetailProductCard extends StatelessWidget {
                         size: 56,
                       ),
                     )
-                  : Image.network(
-                      product.imageUrl,
+                  : StoreImage(
+                      imageUrl: product.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(
-                            _productIcon(product.category),
-                            color: AppColors.white,
-                            size: 56,
-                          ),
-                        );
-                      },
+                      errorWidget: Center(
+                        child: Icon(
+                          _productIcon(product.category),
+                          color: AppColors.white,
+                          size: 56,
+                        ),
+                      ),
                     ),
             ),
           ),
@@ -1586,18 +1583,16 @@ class _CollectionImage extends StatelessWidget {
                   color: activePalette.textPrimary,
                 ),
               )
-            : Image.network(
-                imageUrl,
+            : StoreImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Icon(
-                      Icons.layers_outlined,
-                      size: 56,
-                      color: activePalette.textPrimary,
-                    ),
-                  );
-                },
+                errorWidget: Center(
+                  child: Icon(
+                    Icons.layers_outlined,
+                    size: 56,
+                    color: activePalette.textPrimary,
+                  ),
+                ),
               ),
       ),
     );

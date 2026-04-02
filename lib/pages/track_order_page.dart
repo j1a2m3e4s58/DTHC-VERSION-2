@@ -7,6 +7,7 @@ import '../data/order_controller.dart';
 import '../data/theme_controller.dart';
 import '../models/customer_order.dart';
 import '../widgets/custom_navbar.dart';
+import '../widgets/store_image.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
@@ -976,15 +977,13 @@ class _TrackedItemCard extends StatelessWidget {
                       Icons.shopping_bag_outlined,
                       color: AppColors.gold,
                     )
-                  : Image.network(
-                      imageUrl,
+                  : StoreImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.shopping_bag_outlined,
-                          color: AppColors.gold,
-                        );
-                      },
+                      errorWidget: const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: AppColors.gold,
+                      ),
                     ),
             ),
           ),

@@ -38,7 +38,9 @@ class DTHCApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => StoreController()),
+        ChangeNotifierProvider(
+          create: (_) => StoreController(enableSync: firebaseReady),
+        ),
         ChangeNotifierProvider(create: (_) => CartController()),
         ChangeNotifierProvider(
           create: (_) => OrderController(enableSync: firebaseReady),

@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:async';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/foundation.dart';
@@ -19,11 +21,24 @@ class StoreController extends ChangeNotifier {
   static const String _collectionsKey = 'dthc_collections';
   static const String _lookbookEntriesKey = 'dthc_lookbook_entries';
   static const String _deliveryZonesKey = 'dthc_delivery_zones';
+  DatabaseReference? _storeRef;
+  StreamSubscription<DatabaseEvent>? _storeSubscription;
+  bool _enableSync = false;
 
-  factory StoreController() => _instance;
+  factory StoreController({bool enableSync = false}) {
+    _instance._configureSync(enableSync);
+    return _instance;
+  }
 
   StoreController._internal() {
     _loadPersistedData();
+  }
+
+  void _configureSync(bool enableSync) {
+    if (!enableSync || _enableSync) return;
+    _enableSync = true;
+    _storeRef = FirebaseDatabase.instance.ref('storeData');
+    _listenToCloudStore();
   }
 
   Future<void> _loadPersistedData() async {
@@ -101,6 +116,106 @@ class StoreController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _listenToCloudStore() {
+    final storeRef = _storeRef;
+    if (storeRef == null) return;
+
+    _storeSubscription?.cancel();
+    _storeSubscription = storeRef.onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data is! Map) return;
+
+      final map = Map<String, dynamic>.from(
+        data.map((key, value) => MapEntry(key.toString(), value)),
+      );
+
+      final settingsRaw = map['settings'];
+      if (settingsRaw is Map) {
+        MockStoreData.storeSettings =
+            StoreSettings.fromMap(Map<String, dynamic>.from(settingsRaw));
+      }
+
+      final heroRaw = map['heroBanners'];
+      if (heroRaw is Map) {
+        final heroItems = heroRaw.entries
+            .map(
+              (entry) => HeroBannerItem.fromMap(
+                Map<String, dynamic>.from(
+                  (entry.value as Map).map(
+                    (k, v) => MapEntry(k.toString(), v),
+                  ),
+                ),
+              ),
+            )
+            .toList();
+        heroItems.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+        MockStoreData.heroBanners = heroItems;
+      }
+
+      final productsRaw = map['products'];
+      if (productsRaw is Map) {
+        MockStoreData.foodItems = productsRaw.entries
+            .map(
+              (entry) => ProductItem.fromMap(
+                Map<String, dynamic>.from(
+                  (entry.value as Map).map(
+                    (k, v) => MapEntry(k.toString(), v),
+                  ),
+                ),
+              ),
+            )
+            .toList();
+      }
+
+      final collectionsRaw = map['collections'];
+      if (collectionsRaw is Map) {
+        MockStoreData.collections = collectionsRaw.entries
+            .map(
+              (entry) => CollectionModel.fromMap(
+                Map<String, dynamic>.from(
+                  (entry.value as Map).map(
+                    (k, v) => MapEntry(k.toString(), v),
+                  ),
+                ),
+              ),
+            )
+            .toList();
+      }
+
+      final lookbookRaw = map['lookbookEntries'];
+      if (lookbookRaw is Map) {
+        MockStoreData.lookbookEntries = lookbookRaw.entries
+            .map(
+              (entry) => Map<String, dynamic>.from(
+                (entry.value as Map).map(
+                  (k, v) => MapEntry(k.toString(), v),
+                ),
+              ),
+            )
+            .toList();
+      }
+
+      final zonesRaw = map['deliveryZones'];
+      if (zonesRaw is Map) {
+        MockStoreData.deliveryZones = zonesRaw.entries
+            .map(
+              (entry) => DeliveryZone.fromMap(
+                entry.key.toString(),
+                Map<String, dynamic>.from(
+                  (entry.value as Map).map(
+                    (k, v) => MapEntry(k.toString(), v),
+                  ),
+                ),
+              ),
+            )
+            .toList();
+      }
+
+      unawaited(_persistData());
+      notifyListeners();
+    });
+  }
+
   Future<void> _persistData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
@@ -138,13 +253,45 @@ class StoreController extends ChangeNotifier {
     );
   }
 
+  Future<void> _persistCloudData() async {
+    final storeRef = _storeRef;
+    if (!_enableSync || storeRef == null) return;
+
+    await storeRef.child('settings').set(MockStoreData.storeSettings.toMap());
+    await storeRef.child('heroBanners').set({
+      for (final item in MockStoreData.heroBanners) item.id: item.toMap(),
+    });
+    await storeRef.child('products').set({
+      for (final item in MockStoreData.foodItems) item.id: item.toMap(),
+    });
+    await storeRef.child('collections').set({
+      for (final item in MockStoreData.collections) item.id: item.toMap(),
+    });
+    await storeRef.child('lookbookEntries').set({
+      for (final item in MockStoreData.lookbookEntries)
+        (item['id'] ?? '').toString(): item,
+    });
+    await storeRef.child('deliveryZones').set({
+      for (final zone in MockStoreData.deliveryZones)
+        zone.id: {
+          'id': zone.id,
+          ...zone.toMap(),
+        },
+    });
+  }
+
+  void _persistEverywhere() {
+    unawaited(_persistData());
+    unawaited(_persistCloudData());
+  }
+
   StoreSettings getStoreSettings() {
     return MockStoreData.storeSettings;
   }
 
   void updateStoreSettings(StoreSettings settings) {
     MockStoreData.storeSettings = settings;
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -170,7 +317,7 @@ class StoreController extends ChangeNotifier {
 
   void addHeroBanner(HeroBannerItem item) {
     MockStoreData.heroBanners.add(item);
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -178,14 +325,14 @@ class StoreController extends ChangeNotifier {
     final index = MockStoreData.heroBanners.indexWhere((item) => item.id == id);
     if (index != -1) {
       MockStoreData.heroBanners[index] = updatedItem;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
 
   void deleteHeroBanner(String id) {
     MockStoreData.heroBanners.removeWhere((item) => item.id == id);
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -283,7 +430,7 @@ class StoreController extends ChangeNotifier {
       ...MockStoreData.collections,
       collection,
     ];
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -296,7 +443,7 @@ class StoreController extends ChangeNotifier {
       final updatedList = [...MockStoreData.collections];
       updatedList[index] = updatedCollection;
       MockStoreData.collections = updatedList;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
@@ -305,7 +452,7 @@ class StoreController extends ChangeNotifier {
     MockStoreData.collections = MockStoreData.collections
         .where((collection) => collection.id != id)
         .toList();
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -325,7 +472,7 @@ class StoreController extends ChangeNotifier {
         isFeatured: !current.isFeatured,
       );
       MockStoreData.collections = updatedList;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
@@ -367,7 +514,7 @@ class StoreController extends ChangeNotifier {
       ...MockStoreData.deliveryZones,
       zone,
     ];
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -380,7 +527,7 @@ class StoreController extends ChangeNotifier {
       final updatedList = [...MockStoreData.deliveryZones];
       updatedList[index] = updatedZone;
       MockStoreData.deliveryZones = updatedList;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
@@ -389,7 +536,7 @@ class StoreController extends ChangeNotifier {
     MockStoreData.deliveryZones = MockStoreData.deliveryZones
         .where((zone) => zone.id != id)
         .toList();
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
   List<ProductItem> getProductsByCategory(String categoryName) {
@@ -453,7 +600,7 @@ class StoreController extends ChangeNotifier {
         'targetValue': (entry['targetValue'] ?? '').toString(),
       },
     ];
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -479,7 +626,7 @@ class StoreController extends ChangeNotifier {
       };
 
       MockStoreData.lookbookEntries = updatedList;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
@@ -489,7 +636,7 @@ class StoreController extends ChangeNotifier {
         .where((entry) => (entry['id'] ?? '').toString() != id)
         .map((entry) => Map<String, dynamic>.from(entry))
         .toList();
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -514,20 +661,20 @@ class StoreController extends ChangeNotifier {
         MockStoreData.foodItems.indexWhere((product) => product.id == id);
     if (index != -1) {
       MockStoreData.foodItems[index] = updatedItem;
-      _persistData();
+      _persistEverywhere();
       notifyListeners();
     }
   }
 
   void addProductItem(ProductItem newProduct) {
     MockStoreData.foodItems.add(newProduct);
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
   void deleteProductItem(String id) {
     MockStoreData.foodItems.removeWhere((product) => product.id == id);
-    _persistData();
+    _persistEverywhere();
     notifyListeners();
   }
 
@@ -556,4 +703,10 @@ class StoreController extends ChangeNotifier {
   void addFoodItem(FoodItem newFood) => addProductItem(newFood);
 
   void deleteFoodItem(String id) => deleteProductItem(id);
+
+  @override
+  void dispose() {
+    _storeSubscription?.cancel();
+    super.dispose();
+  }
 }

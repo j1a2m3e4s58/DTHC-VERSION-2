@@ -8,6 +8,7 @@ import '../data/cart_controller.dart';
 import '../data/theme_controller.dart';
 import '../models/cart_item.dart';
 import '../widgets/custom_navbar.dart';
+import '../widgets/store_image.dart';
 import 'checkout_page.dart';
 import 'home_page.dart';
 import 'menu_page.dart';
@@ -377,16 +378,10 @@ class CartPage extends StatelessWidget {
           gradient: AppColors.heroGradient,
         ),
         child: imageUrl.isNotEmpty
-            ? Image.network(
-                imageUrl,
+            ? StoreImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildImageFallback(isMobile);
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return _buildImageLoader(isMobile);
-                },
+                errorWidget: _buildImageFallback(isMobile),
               )
             : _buildImageFallback(isMobile),
       ),

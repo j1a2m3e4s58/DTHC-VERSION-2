@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../data/store_controller.dart';
 import '../../widgets/admin_image_upload_field.dart';
+import '../../widgets/store_image.dart';
 
 class AdminLookbookPage extends StatelessWidget {
   const AdminLookbookPage({super.key});
@@ -439,20 +440,18 @@ class _LookbookEntryCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    imageUrl,
+                  StoreImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.charcoal,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          color: AppColors.white,
-                          size: 40,
-                        ),
-                      );
-                    },
+                    errorWidget: Container(
+                      color: AppColors.charcoal,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.broken_image_outlined,
+                        color: AppColors.white,
+                        size: 40,
+                      ),
+                    ),
                   ),
                   Positioned(
                     top: 14,

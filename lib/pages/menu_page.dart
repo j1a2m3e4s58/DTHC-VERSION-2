@@ -8,6 +8,7 @@ import '../data/theme_controller.dart';
 import '../models/food_item.dart';
 import '../widgets/custom_navbar.dart';
 import '../widgets/food_card.dart';
+import '../widgets/store_image.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
@@ -1061,15 +1062,13 @@ class _QuickSearchTile extends StatelessWidget {
                         Icons.shopping_bag_outlined,
                         color: palette.textPrimary,
                       )
-                    : Image.network(
-                        imageUrl,
+                    : StoreImage(
+                        imageUrl: imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.shopping_bag_outlined,
-                            color: palette.textPrimary,
-                          );
-                        },
+                        errorWidget: Icon(
+                          Icons.shopping_bag_outlined,
+                          color: palette.textPrimary,
+                        ),
                       ),
               ),
             ),

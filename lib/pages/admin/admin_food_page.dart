@@ -6,6 +6,7 @@ import '../../data/store_controller.dart';
 import '../../data/theme_controller.dart';
 import '../../models/food_item.dart';
 import '../../widgets/admin_image_upload_field.dart';
+import '../../widgets/store_image.dart';
 
 class AdminFoodPage extends StatefulWidget {
   const AdminFoodPage({super.key});
@@ -724,24 +725,22 @@ class _ProductAdminCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: image.isNotEmpty
-                  ? Image.network(
-                      image,
+                  ? StoreImage(
+                      imageUrl: image,
                       width: 90,
                       height: 90,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 90,
-                          height: 90,
-                          color: palette.surfaceAlt,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.shopping_bag_outlined,
-                            size: 32,
-                            color: AppColors.gold,
-                          ),
-                        );
-                      },
+                      errorWidget: Container(
+                        width: 90,
+                        height: 90,
+                        color: palette.surfaceAlt,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.shopping_bag_outlined,
+                          size: 32,
+                          color: AppColors.gold,
+                        ),
+                      ),
                     )
                   : Container(
                       width: 90,

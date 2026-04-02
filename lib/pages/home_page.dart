@@ -11,6 +11,7 @@ import '../models/food_item.dart';
 import '../models/store_settings.dart';
 import '../widgets/custom_navbar.dart';
 import '../widgets/hero_section.dart';
+import '../widgets/store_image.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
@@ -523,15 +524,13 @@ class _SearchResultTile extends StatelessWidget {
                         Icons.shopping_bag_outlined,
                         color: AppColors.primaryBlack,
                       )
-                    : Image.network(
-                        imageUrl,
+                    : StoreImage(
+                        imageUrl: imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.shopping_bag_outlined,
-                            color: AppColors.primaryBlack,
-                          );
-                        },
+                        errorWidget: const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: AppColors.primaryBlack,
+                        ),
                       ),
               ),
             ),
@@ -1918,19 +1917,16 @@ class _ProductPreviewCard extends StatelessWidget {
                         color: palette.textPrimary,
                       ),
                     )
-                  : Image.network(
-                      imageUrl,
+                  : StoreImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(
-                            _productIcon(product.category),
-                            size: 56,
-                            color: palette.textPrimary,
-                          ),
-                        );
-                      },
+                      errorWidget: Center(
+                        child: Icon(
+                          _productIcon(product.category),
+                          size: 56,
+                          color: palette.textPrimary,
+                        ),
+                      ),
                     ),
             ),
           ),

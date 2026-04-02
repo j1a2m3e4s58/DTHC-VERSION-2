@@ -5,6 +5,7 @@ import '../core/app_colors.dart';
 import '../data/store_controller.dart';
 import '../data/theme_controller.dart';
 import '../widgets/custom_navbar.dart';
+import '../widgets/store_image.dart';
 import 'admin/admin_dashboard_page.dart';
 import 'cart_page.dart';
 import 'collections_page.dart';
@@ -420,18 +421,16 @@ class _HeroEditorialImage extends StatelessWidget {
             : Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    imageUrl,
+                  StoreImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(
-                          Icons.photo_library_outlined,
-                          size: 58,
-                          color: AppColors.white,
-                        ),
-                      );
-                    },
+                    errorWidget: const Center(
+                      child: Icon(
+                        Icons.photo_library_outlined,
+                        size: 58,
+                        color: AppColors.white,
+                      ),
+                    ),
                   ),
                   Container(
                     decoration: const BoxDecoration(
@@ -1017,18 +1016,16 @@ class _LookbookImage extends StatelessWidget {
                   color: AppColors.white,
                 ),
               )
-            : Image.network(
-                imageUrl,
+            : StoreImage(
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(
-                      Icons.photo_library_outlined,
-                      size: 58,
-                      color: AppColors.white,
-                    ),
-                  );
-                },
+                errorWidget: const Center(
+                  child: Icon(
+                    Icons.photo_library_outlined,
+                    size: 58,
+                    color: AppColors.white,
+                  ),
+                ),
               ),
       ),
     );

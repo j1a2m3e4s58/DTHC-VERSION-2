@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
 import '../data/store_controller.dart';
 import '../models/food_item.dart';
+import 'store_image.dart';
 
 class OrderBanner extends StatelessWidget {
   const OrderBanner({super.key});
@@ -307,16 +308,14 @@ class _ProductThumb extends StatelessWidget {
               size: 42,
               color: AppColors.white,
             )
-          : Image.network(
-              product!.imageUrl,
+          : StoreImage(
+              imageUrl: product!.imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 42,
-                  color: AppColors.white,
-                );
-              },
+              errorWidget: const Icon(
+                Icons.shopping_bag_outlined,
+                size: 42,
+                color: AppColors.white,
+              ),
             ),
     );
   }

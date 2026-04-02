@@ -11,6 +11,7 @@ import '../models/food_item.dart';
 import '../models/hero_banner_item.dart';
 import '../models/store_settings.dart';
 import '../pages/cart_page.dart';
+import 'store_image.dart';
 
 class HeroSection extends StatefulWidget {
   final VoidCallback? onOrderNowTap;
@@ -590,21 +591,19 @@ class _HeroImageCard extends StatelessWidget {
                           return Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.network(
-                                banner.imageUrl,
+                              StoreImage(
+                                imageUrl: banner.imageUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: palette.surfaceAlt,
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.shopping_bag,
-                                        size: isTablet ? 110 : 140,
-                                        color: AppColors.white.withValues(alpha: 0.95),
-                                      ),
+                                errorWidget: Container(
+                                  color: palette.surfaceAlt,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.shopping_bag,
+                                      size: isTablet ? 110 : 140,
+                                      color: AppColors.white.withValues(alpha: 0.95),
                                     ),
-                                  );
-                                },
+                                  ),
+                                ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
