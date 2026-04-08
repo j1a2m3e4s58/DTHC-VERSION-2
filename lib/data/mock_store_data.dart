@@ -47,6 +47,7 @@ class MockStoreData {
     shopSearchTitle: 'Search the drop',
     shopSearchSubtitle:
         'Find tees, sneakers, caps, chains, belts, and socks instantly.',
+    adminAccessPassword: 'T4N4AMEG8F5',
     deliveryFee: 20.0,
     freeDeliveryThreshold: 300.0,
     instagram: '@driptoohardcollections',

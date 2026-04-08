@@ -37,6 +37,7 @@ class StoreSettings {
   final String shopHeaderBadge;
   final String shopSearchTitle;
   final String shopSearchSubtitle;
+  final String adminAccessPassword;
 
   final double deliveryFee;
   final double freeDeliveryThreshold;
@@ -81,6 +82,7 @@ class StoreSettings {
     required this.shopHeaderBadge,
     required this.shopSearchTitle,
     required this.shopSearchSubtitle,
+    required this.adminAccessPassword,
     required this.deliveryFee,
     required this.freeDeliveryThreshold,
     required this.instagram,
@@ -124,6 +126,7 @@ class StoreSettings {
     String? shopHeaderBadge,
     String? shopSearchTitle,
     String? shopSearchSubtitle,
+    String? adminAccessPassword,
     double? deliveryFee,
     double? freeDeliveryThreshold,
     String? instagram,
@@ -176,6 +179,7 @@ class StoreSettings {
       shopHeaderBadge: shopHeaderBadge ?? this.shopHeaderBadge,
       shopSearchTitle: shopSearchTitle ?? this.shopSearchTitle,
       shopSearchSubtitle: shopSearchSubtitle ?? this.shopSearchSubtitle,
+      adminAccessPassword: adminAccessPassword ?? this.adminAccessPassword,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       freeDeliveryThreshold:
           freeDeliveryThreshold ?? this.freeDeliveryThreshold,
@@ -222,6 +226,7 @@ class StoreSettings {
       'shopHeaderBadge': shopHeaderBadge,
       'shopSearchTitle': shopSearchTitle,
       'shopSearchSubtitle': shopSearchSubtitle,
+      'adminAccessPassword': adminAccessPassword,
       'deliveryFee': deliveryFee,
       'freeDeliveryThreshold': freeDeliveryThreshold,
       'instagram': instagram,
@@ -276,6 +281,8 @@ class StoreSettings {
       shopHeaderBadge: (map['shopHeaderBadge'] ?? '').toString(),
       shopSearchTitle: (map['shopSearchTitle'] ?? '').toString(),
       shopSearchSubtitle: (map['shopSearchSubtitle'] ?? '').toString(),
+      adminAccessPassword:
+          (map['adminAccessPassword'] ?? 'T4N4AMEG8F5').toString(),
       deliveryFee: parseDouble(map['deliveryFee'], 0),
       freeDeliveryThreshold: parseDouble(map['freeDeliveryThreshold'], 0),
       instagram: (map['instagram'] ?? '').toString(),
