@@ -4,6 +4,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../utils/image_url_utils.dart';
+import 'google_drive_import_stub.dart'
+    if (dart.library.html) 'google_drive_import_web.dart';
+import 'store_image.dart';
+
 class AdminImageUploadField extends StatefulWidget {
   final TextEditingController controller;
   final String storageFolder;
@@ -92,6 +97,71 @@ class _AdminImageUploadFieldState extends State<AdminImageUploadField> {
     return 'data:$resolvedMimeType;base64,${base64Encode(bytes)}';
   }
 
+  Future<void> _openGoogleDriveDialog() async {
+    final driveController = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Google Drive image'),
+          content: TextField(
+            controller: driveController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Google Drive share link',
+              hintText: 'Paste a Google Drive image link',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final rawLink = driveController.text.trim();
+                final normalizedLink = normalizeImageUrl(rawLink);
+                final fileId = extractGoogleDriveFileId(rawLink);
+
+                if (rawLink.isEmpty || fileId == null || fileId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Please paste a valid Google Drive image share link.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                final importedDataUrl = await importGoogleDriveImageAsDataUrl(
+                  googleDriveImageCandidates(rawLink),
+                );
+
+                widget.controller.text = importedDataUrl ?? normalizedLink;
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      importedDataUrl != null
+                          ? 'Google Drive image imported successfully.'
+                          : 'Google Drive image linked successfully.',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Use link'),
+            ),
+          ],
+        );
+      },
+    );
+
+    driveController.dispose();
+  }
+
   Uint8List? _embeddedImageBytes() {
     final value = widget.controller.text;
     if (!value.startsWith('data:image/')) return null;
@@ -158,7 +228,7 @@ class _AdminImageUploadFieldState extends State<AdminImageUploadField> {
           style: widget.style,
           validator: (_) => widget.validator?.call(widget.controller.text),
           onChanged: (value) {
-            widget.controller.text = value;
+            widget.controller.text = normalizeImageUrl(value);
           },
           decoration: widget.decoration.copyWith(
             suffixIcon: _hasEmbeddedImage
@@ -205,6 +275,19 @@ class _AdminImageUploadFieldState extends State<AdminImageUploadField> {
                     )
                   : const Icon(Icons.upload_file_outlined, size: 18),
               label: Text(_isPicking ? 'Adding image...' : widget.uploadButtonLabel),
+            ),
+            OutlinedButton.icon(
+              onPressed: _isPicking ? null : _openGoogleDriveDialog,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: widget.buttonForegroundColor,
+                side: BorderSide(color: borderColor),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+              ),
+              icon: const Icon(Icons.cloud_outlined, size: 18),
+              label: const Text('Google Drive'),
             ),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 360),
@@ -262,20 +345,18 @@ class _AdminImageUploadFieldState extends State<AdminImageUploadField> {
                           embeddedBytes,
                           fit: BoxFit.cover,
                         )
-                      : Image.network(
-                          value,
+                      : StoreImage(
+                          imageUrl: value,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.black12,
-                              alignment: Alignment.center,
-                              child: Icon(
-                                Icons.broken_image_outlined,
-                                color: widget.buttonForegroundColor,
-                                size: 28,
-                              ),
-                            );
-                          },
+                          errorWidget: Container(
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              color: widget.buttonForegroundColor,
+                              size: 28,
+                            ),
+                          ),
                         ),
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -371,20 +452,18 @@ class _AdminImageUploadFieldState extends State<AdminImageUploadField> {
                               embeddedBytes,
                               fit: BoxFit.contain,
                             )
-                          : Image.network(
-                              value,
+                          : StoreImage(
+                              imageUrl: value,
                               fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.black12,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.broken_image_outlined,
-                                    color: widget.buttonForegroundColor,
-                                    size: 42,
-                                  ),
-                                );
-                              },
+                              errorWidget: Container(
+                                color: Colors.black12,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.broken_image_outlined,
+                                  color: widget.buttonForegroundColor,
+                                  size: 42,
+                                ),
+                              ),
                             ),
                     ),
                   ),
